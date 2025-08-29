@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verifica tu Correo Electrónico</title>
+</head>
+<body>
+    <h1>¡Hola, {{ username }}!</h1>
+    <p>Gracias por registrarte en nuestro servicio.</p>
+    <p>Por favor, haz clic en el siguiente enlace para verificar tu dirección de correo electrónico:</p>
+    <p><a href="{{ verification_url }}">Verificar correo electrónico</a></p>
+    <p>Si no te registraste en nuestro servicio, por favor ignora este correo.</p>
+    <p>Saludos,</p>
+    <p>El equipo de tu aplicación</p>
+    
+    {% if request %}
+    <p>Solicitud recibida desde: {{ request.client.host }}</p>
+    {% endif %}
+</body>
+</html>
