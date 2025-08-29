@@ -1,0 +1,74 @@
+<ng-container *ngIf="selected === 'perfil'" class="dashboard-cliente">
+  <div class="dashboard-cliente">
+    <h2 class="titulo-seccion">Mi Perfil</h2>
+    <div class="profile-container">
+    <form class="perfil-form" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div>
+          <label>Nombre de Usuario</label>
+          <input type="text" [(ngModel)]="perfil.username" name="username">
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" [(ngModel)]="perfil.email" name="email">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Número de Identificación</label>
+          <input type="text" [(ngModel)]="perfil.numero_identificacion" name="numero_identificacion">
+        </div>
+        <div>
+          <label>Ciudad</label>
+          <input type="text" [(ngModel)]="perfil.ciudad" name="ciudad">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>RH</label>
+          <input type="text" [(ngModel)]="perfil.rh" name="rh">
+        </div>
+        <div>
+          <label>Grupo Sanguíneo</label>
+          <input type="text" [(ngModel)]="perfil.grupo_sanguineo" name="grupo_sanguineo">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Nombres</label>
+          <input type="text" [(ngModel)]="perfil.nombres" name="nombres">
+        </div>
+        <div>
+          <label>Apellidos</label>
+          <input type="text" [(ngModel)]="perfil.apellidos" name="apellidos">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Año de Nacimiento</label>
+          <input type="number" [(ngModel)]="perfil.ano_nacimiento" name="ano_nacimiento">
+        </div>
+        <div>
+          <label>Dirección</label>
+          <input type="text" [(ngModel)]="perfil.direccion" name="direccion">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="perfil.telefono" name="telefono">
+        </div>
+        <div>
+          <label>Link de la foto de perfil</label>
+          <input type="text" [(ngModel)]="perfil.profile_image_url" name="profile_image_url" placeholder="https://...">
+        </div>
+      </div>
+      <button class="update-btn" type="submit">Actualizar Perfil</button>
+      <div *ngIf="mensajeExito" class="mensaje-exito">{{mensajeExito}}</div>
+    </form>
+    <div class="profile-image">
+      <img [src]="perfil.profile_image_url || 'https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'" alt="Foto de perfil">
+    </div>
+  </div>
+</div>
+</ng-container>

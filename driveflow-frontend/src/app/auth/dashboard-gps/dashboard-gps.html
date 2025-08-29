@@ -1,0 +1,34 @@
+<div class="dashboard-gps-container">
+  <div id="map"></div>
+
+  <div *ngIf="showApagarVehiculo" class="overlay-container">
+    <button class="apagar-btn">Apagar Vehículo</button>
+    <div class="side-list-container">
+      <div class="side-list-header">
+        <span>Funcionarios ({{filteredAgentes.length}})</span>
+        <input 
+          class="side-list-search" 
+          type="text" 
+          placeholder="Buscar por placa o nombre"
+          [(ngModel)]="searchTerm"
+          (input)="onSearch($event)">
+      </div>
+      <ul class="side-list">
+        <li *ngFor="let agente of filteredAgentes" class="side-list-item">
+          <span class="side-list-dot" [ngClass]="getStatusColor(agente)" [title]="getStatusTooltip(agente)"></span>
+          <div class="agente-info">
+            <div class="agente-nombre">{{agente.nombre}}</div>
+            <div class="agente-placa">{{agente.placa}}</div>
+          </div>
+        </li>
+        <li *ngIf="filteredAgentes.length === 0" class="side-list-item no-results">
+          No se encontraron funcionarios
+        </li>
+      </ul>
+      <div class="side-list-actions">
+        <button class="side-list-action-btn">Emergencia</button>
+        <button class="side-list-action-btn">Rastrear</button>
+      </div>
+    </div>
+  </div>
+</div>

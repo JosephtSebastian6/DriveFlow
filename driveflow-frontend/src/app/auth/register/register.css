@@ -1,0 +1,149 @@
+/* Estilos personalizados para el selector de tipo de usuario */
+
+
+
+.form-field mat-form-field {
+  width: 100%;
+}
+
+.mat-form-field {
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #f5f7fa;
+}
+
+.mat-select {
+  color: #2d3a4a;
+  font-weight: 500;
+}
+
+.mat-select-panel {
+  background: #e3eaf2;
+  color: #2d3a4a;
+}
+
+.mat-option {
+  color: #2d3a4a;
+}
+
+.mat-form-field.mat-focused .mat-form-field-outline {
+  color: #1976d2;
+  border-color: #1976d2;
+}
+/* src/app/register/register.component.css */
+
+/* Contenedor principal que centra la tarjeta en la pantalla */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-size: cover;
+  background-position: center;
+
+
+  background-image: url('https://es.investinbogota.org/wp-content/uploads/2022/09/bogota-recibio-60-proyectos-de-inversion-scaled.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  /* ¡ELIMINA O COMENTA ESTA LÍNEA! */
+  /* padding-top: 60px; */
+
+
+
+
+}
+
+/* Estilo de la tarjeta de registro */
+.register-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semi-transparente */
+  color: white; /* Color de texto blanco para legibilidad */
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Sombra para profundidad */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+}
+
+/* Estilo del título */
+.card-title h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* Estilos de los campos del formulario */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Espacio entre los campos del formulario */
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 4px;
+}
+
+.form-field input {
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+  outline: none; /* Elimina el contorno de foco por defecto */
+}
+
+.form-field input:focus {
+  border-color: #1a73e8; /* Borde azul cuando el campo está enfocado */
+}
+
+/* Estilo para el botón de registro */
+.register-button {
+  padding: 12px;
+  background-color: #1a73e8; /* El color azul del botón */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.register-button:hover {
+  background-color: #1764c6;
+}
+
+/* Estilo del mensaje de respuesta */
+.message {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* Estilo para los enlaces de texto */
+.links {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.links a {
+  color: #1a73e8; /* Color azul para los enlaces */
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}

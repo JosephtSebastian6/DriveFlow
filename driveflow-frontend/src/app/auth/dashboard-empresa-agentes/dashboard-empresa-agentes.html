@@ -1,0 +1,41 @@
+<div class="dashboard-empresa-agentes-container">
+  <h2>Agentes de la Empresa</h2>
+  <p>Aquí podrás ver y gestionar los agentes asociados a tu empresa.</p>
+  <div *ngIf="loading" class="agentes-loading">Cargando agentes...</div>
+  <div *ngIf="error" class="agentes-error">{{ error }}</div>
+  <div class="agentes-table-wrapper" *ngIf="!loading && !error">
+    <table class="agentes-table">
+      <thead>
+        <tr>
+          <th>Estado</th>
+          <th>Nombre</th>
+          <th>N° Identificación</th>
+          <th>Celular</th>
+          <th>Placa</th>
+          <th>Modelo</th>
+          <th>Color</th>
+          <th>Fecha SOAT</th>
+          <th>Fecha Tecnomecánica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let agente of agentes">
+          <td class="status-cell">
+            <span class="status-dot" [ngClass]="getStatusColor(agente)" [title]="getStatusTooltip(agente)"></span>
+          </td>
+          <td>{{ agente.nombre }}</td>
+          <td>{{ agente.identificacion }}</td>
+          <td>{{ agente.celular }}</td>
+          <td>{{ agente.placa }}</td>
+          <td>{{ agente.modelo }}</td>
+          <td>{{ agente.color }}</td>
+          <td>{{ agente.fecha_soat }}</td>
+          <td>{{ agente.fecha_tecno }}</td>
+        </tr>
+        <tr *ngIf="agentes.length === 0">
+          <td colspan="9" style="text-align:center; color:#888;">No hay agentes registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

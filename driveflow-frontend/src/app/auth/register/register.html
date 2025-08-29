@@ -1,0 +1,63 @@
+<!-- src/app/register/register.component.html -->
+<div class="register-container">
+  <div class="register-card">
+    <div class="card-title">
+      <h2>Registrarse</h2>
+    </div>
+    <div class="card-content">
+      <!-- El formulario se enlaza con la función onSubmit() de tu componente -->
+      <form (ngSubmit)="onSubmit()" class="register-form">
+
+        <!-- Campo de Nombres -->
+        <div class="form-field">
+          <label for="nombres">Nombres*</label>
+          <input id="nombres" type="text" [(ngModel)]="nombres" name="nombres" required>
+        </div>
+
+        <!-- Campo de Apellidos -->
+        <div class="form-field">
+          <label for="apellidos">Apellidos*</label>
+          <input id="apellidos" type="text" [(ngModel)]="apellidos" name="apellidos" required>
+        </div>
+
+        <!-- Campo de Usuario -->
+        <div class="form-field">
+          <label for="username">Usuario*</label>
+          <input id="username" type="text" [(ngModel)]="username" name="username" required>
+        </div>
+
+        <!-- Campo de Email -->
+        <div class="form-field">
+          <label for="email">Email*</label>
+          <input id="email" type="email" [(ngModel)]="email" name="email" required>
+        </div>
+
+        <!-- Campo de Contraseña -->
+        <div class="form-field">
+          <label for="password">Contraseña*</label>
+          <input id="password" type="password" [(ngModel)]="password" name="password" required>
+        <!-- Campo de Tipo de Usuario con Angular Material -->
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Tipo de usuario*</mat-label>
+          <mat-select [(ngModel)]="tipo_usuario" name="tipo_usuario" required>
+            <mat-option value="cliente">Cliente</mat-option>
+            <mat-option value="funcionario">Funcionario</mat-option>
+            <mat-option value="empresa">Empresa</mat-option>
+          </mat-select>
+        </mat-form-field>
+        </div>
+
+        <!-- Botón de Registro -->
+        <button type="submit" class="register-button">Registrar</button>
+      </form>
+
+      <!-- Muestra el mensaje del componente aquí, si existe -->
+      <p *ngIf="message" class="message">{{ message }}</p>
+
+      <div class="links">
+        <p>¿Ya tienes cuenta? <a routerLink="/login">Iniciar Sesión</a></p>
+      </div>
+
+    </div>
+  </div>
+</div>

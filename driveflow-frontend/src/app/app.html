@@ -1,0 +1,18 @@
+<header>
+  <h1>DriveFlow</h1>
+  <nav>
+    <div class="nav-links">
+      <button class="linea"><a>LÍNEA DE REACCIÓN</a></button>
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/login">Login</a>
+        <span> | </span>
+        <a routerLink="/register">Registrarse</a>
+      </ng-container>
+      <ng-container *ngIf="isLoggedIn">
+        <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+      </ng-container>
+    </div>
+  </nav>
+</header>
+
+<router-outlet></router-outlet>

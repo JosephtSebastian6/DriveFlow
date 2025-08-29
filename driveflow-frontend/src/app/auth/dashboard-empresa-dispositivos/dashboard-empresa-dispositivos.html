@@ -1,0 +1,60 @@
+<div class="dispositivos-container">
+  <h1>Gestión de Dispositivos GPS</h1>
+
+  <div class="busqueda-section">
+    <input type="text" [(ngModel)]="placaBusqueda" placeholder="Buscar por placa..." (keyup.enter)="buscarVehiculos()">
+    <button (click)="buscarVehiculos()">Buscar</button>
+  </div>
+
+  <div *ngIf="mensaje" class="mensaje">{{ mensaje }}</div>
+
+  <div class="listas-container">
+    <div class="lista-vehiculos activos">
+      <h2>Vehículos con GPS Activo</h2>
+      <div *ngIf="vehiculosActivos.length > 0; else noActivos">
+        <ul>
+          <li *ngFor="let vehiculo of vehiculosActivos">
+            {{ vehiculo.placa }} - {{ vehiculo.modelo }} ({{ vehiculo.propietario_nombre }})
+          </li>
+        </ul>
+      </div>
+      <ng-template #noActivos>
+        <p>No hay vehículos con GPS activo.</p>
+      </ng-template>
+    </div>
+
+    <div class="lista-vehiculos inactivos">
+      <h2>Vehículos con GPS Inactivo</h2>
+      <div *ngIf="vehiculosInactivos.length > 0; else noInactivos">
+        <ul>
+          <li *ngFor="let vehiculo of vehiculosInactivos">
+            {{ vehiculo.placa }} - {{ vehiculo.modelo }} ({{ vehiculo.propietario_nombre }})
+          </li>
+        </ul>
+      </div>
+      <ng-template #noInactivos>
+        <p>No hay vehículos con GPS inactivo.</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="resultados-section" *ngIf="vehiculos.length > 0">
+    <h2>Resultados de la Búsqueda</h2>
+    <ul>
+      <li *ngFor="let vehiculo of vehiculos" 
+          (click)="seleccionarVehiculo(vehiculo)" 
+          [class.selected]="vehiculo === vehiculoSeleccionado">
+        <strong>Placa:</strong> {{ vehiculo.placa }} <br>
+        <strong>Modelo:</strong> {{ vehiculo.modelo }} <br>
+        <strong>Propietario:</strong> {{ vehiculo.propietario_nombre }} ({{ vehiculo.propietario_tipo }})
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="vehiculoSeleccionado" class="activacion-section">
+    <h2>Vehículo Seleccionado</h2>
+    <p><strong>Placa:</strong> {{ vehiculoSeleccionado.placa }}</p>
+    <p><strong>Propietario:</strong> {{ vehiculoSeleccionado.propietario_nombre }}</p>
+    <button (click)="activarGps()" [disabled]="!vehiculoSeleccionado">Activar GPS</button>
+  </div>
+</div>

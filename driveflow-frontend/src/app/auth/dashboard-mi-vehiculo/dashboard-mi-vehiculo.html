@@ -1,0 +1,55 @@
+<div class="profile-container">
+  <form class="vehiculo-form" (ngSubmit)="onSubmitVehiculo()">
+    <div class="form-row">
+      <div>
+        <label>Marca</label>
+        <input type="text" [(ngModel)]="vehiculo.marca" name="marca">
+      </div>
+      <div>
+        <label>Modelo</label>
+        <input type="text" [(ngModel)]="vehiculo.modelo" name="modelo">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Año</label>
+        <input type="text" [(ngModel)]="vehiculo.ano" name="ano">
+      </div>
+      <div>
+        <label>Placa</label>
+        <input type="text" [(ngModel)]="vehiculo.placa" name="placa">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Color</label>
+        <input type="text" [(ngModel)]="vehiculo.color" name="color">
+      </div>
+      <div>
+        <label>Link de la imagen del vehículo</label>
+        <input type="text" [(ngModel)]="vehiculo.vehiculo_image_url" name="vehiculo_image_url" placeholder="https://...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Fecha SOAT</label>
+        <input type="date" [(ngModel)]="vehiculo.fecha_soat" name="fecha_soat">
+        <div *ngIf="vehiculo.fecha_soat">
+          <small>Su SOAT se vence en: <b>{{ getSoatVenceEn() }}</b></small>
+        </div>
+      </div>
+      <div>
+        <label>Fecha Tecnomecánica</label>
+        <input type="date" [(ngModel)]="vehiculo.fecha_tecno" name="fecha_tecno">
+        <div *ngIf="vehiculo.fecha_tecno">
+          <small>Su Tecnomecánica se vence en: <b>{{ getTecnoVenceEn() }}</b></small>
+        </div>
+      </div>
+    </div>
+    <button class="update-btn" type="submit">Actualizar Vehículo</button>
+    <div *ngIf="mensajeVehiculo" class="mensaje-exito">{{mensajeVehiculo}}</div>
+  </form>
+  <div class="profile-image">
+    <img [src]="vehiculo.vehiculo_image_url || 'https://www.yamavalle.com/wp-content/uploads/mt-03-roja.jpg'" alt="Foto del vehículo">
+  </div>
+</div>

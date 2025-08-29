@@ -1,0 +1,136 @@
+/* src/app/home/home.component.css */
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* ¡CAMBIO CLAVE! Para empujar el footer hacia abajo si el contenido es corto */
+  align-items: center;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: calc(100vh - 60px); /* Asume header de 60px. Ajusta si es diferente. */
+  margin-top: 60px;
+  overflow: hidden;
+  padding-bottom: 20px;
+
+  
+  background-image: url('https://www.motocity.com.sv/wp-content/uploads/2021/03/Grupo-Motos.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  /* ¡ELIMINA O COMENTA ESTA LÍNEA! */
+  /* padding-top: 60px; */
+
+}
+
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: none;
+  max-width: 900px;
+  width: 90%;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+h1 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 2.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+p {
+  font-size: 1.1em;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.features {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.feature-item {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 40px;
+  border-radius: 8px;
+  width: 190px;
+  height: 155px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos para los iconos de Google Material */
+.feature-item .material-icons {
+  font-size: 40px;
+  color: grey; /* Color azul para los iconos */
+  margin-bottom: 10px;
+}
+
+.feature-item h3, .feature-item p {
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.action-button {
+  background-color: red;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  margin-top: 50px;
+  transition: background-color 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: #0056b3;
+}
+
+/* ¡NUEVOS ESTILOS PARA EL FOOTER LOCAL! */
+.home-footer {
+  text-align: center;
+  padding: 1rem;
+  color: white;
+  font-size: 0.8rem;
+  width: 100%;
+  z-index: 2;
+}
+
+.home-footer p {
+  color: white;
+  text-shadow: none;
+}
+

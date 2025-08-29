@@ -1,0 +1,30 @@
+/* src/styles.css */
+
+/* Estilos globales */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* ¡CRÍTICO! Esto debe estar aquí para el scroll global */
+  background-color: transparent;
+}
+
+/* FORZAR VISIBILIDAD GLOBAL DEL SIDEBAR */
+.sidebar ul,
+.sidebar li,
+.sidebar a,
+.sidebar-icon {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.sidebar ul {
+  display: flex !important;
+}
+
+.sidebar a {
+  display: flex !important;
+}
+
+/* Otros estilos globales si los tienes */

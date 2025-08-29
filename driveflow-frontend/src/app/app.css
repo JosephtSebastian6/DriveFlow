@@ -1,0 +1,105 @@
+header {
+  background-color: #000;
+  color: white;
+  padding: 1.6rem;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  padding-left: 20px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  margin-top: 0;
+  padding-right: 50px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+nav a:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.linea {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.linea:hover {
+  background: #b71c1c;
+}
+
+button.logout-btn {
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 10px;
+}
+
+button.logout-btn:hover {
+  background: #e53935;
+  color: #fff;
+}
+  text-decoration: none;
+  /* margin: 0 15px; */ /* Ya no es necesario si usas gap en .nav-links */
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+.linea{
+
+  background-color: red;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+}
+
+
+/* ELIMINA ESTA REGLA: */
+/* .register-link {
+  margin-left: auto;
+} */
+

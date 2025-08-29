@@ -1,0 +1,51 @@
+<div class="layout-container">
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <h3>Menú</h3>
+      <!-- Aquí puedes poner un logo o avatar si lo deseas -->
+    </div>
+    <div class="sidebar-bottom">
+      <ul style="opacity: 1 !important; visibility: visible !important; display: flex !important; flex-direction: column;">
+        <li *ngIf="tipoUsuario !== 'empresa'" style="opacity: 1 !important; visibility: visible !important; display: block !important;">
+          <a routerLink="/dashboard-cliente" routerLinkActive="active" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">
+            <span class="sidebar-icon material-icons" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">person</span>
+            <span class="sidebar-label">Mi Perfil</span>
+          </a>
+        </li>
+        <li *ngIf="tipoUsuario === 'cliente' || tipoUsuario === 'funcionario'" style="opacity: 1 !important; visibility: visible !important; display: block !important;">
+          <a routerLink="/dashboard-mi-vehiculo" routerLinkActive="active" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">
+            <span class="sidebar-icon material-icons" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">directions_car</span>
+            <span class="sidebar-label">Mi Vehículo</span>
+          </a>
+        </li>
+        <li style="opacity: 1 !important; visibility: visible !important; display: block !important;">
+          <a routerLink="/dashboard-gps" routerLinkActive="active" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">
+            <span class="sidebar-icon material-icons" style="opacity: 1 !important; visibility: visible !important; display: flex !important;">gps_fixed</span>
+            <span class="sidebar-label">GPS</span>
+          </a>
+        </li>
+        <li *ngIf="tipoUsuario === 'empresa'">
+          <a routerLink="/dashboard-empresa-clientes" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">groups</span>
+            <span class="sidebar-label">Clientes</span>
+          </a>
+        </li>
+        <li *ngIf="tipoUsuario === 'empresa'">
+          <a routerLink="/dashboard-empresa-agentes" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">support_agent</span>
+            <span class="sidebar-label">Agentes</span>
+          </a>
+        </li>
+        <li *ngIf="tipoUsuario === 'empresa'">
+          <a routerLink="/dashboard-empresa-dispositivos" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">devices</span>
+            <span class="sidebar-label">Dispositivos</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

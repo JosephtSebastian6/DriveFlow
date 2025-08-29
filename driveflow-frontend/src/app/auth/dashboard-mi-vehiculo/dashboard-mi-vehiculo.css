@@ -1,0 +1,94 @@
+
+/* --- Copiado y adaptado del estilo de Mi Perfil --- */
+.profile-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 48px;
+  width: 100%;
+}
+
+.vehiculo-form {
+  background: rgba(255,255,255,0.97);
+  padding: 40px 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  width: 100%;
+  max-width: 950px;
+  min-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-image {
+  width: 600px;
+  height: 350px;
+  border-radius: 12px;
+  margin-top: 80px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.form-row {
+  display: flex;
+  gap: 24px;
+}
+
+.form-row > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #222;
+}
+
+input[type="text"], input[type="email"], input[type="date"] {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  font-size: 1em;
+  background: #f7f7f7;
+  color: #222;
+}
+
+.update-btn {
+  margin-top: 18px;
+  padding: 14px;
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-self: center;
+  width: 50%;
+}
+
+.update-btn:hover {
+  background: #b71c1c;
+}
+
+.mensaje-exito {
+  color: #388e3c;
+  font-weight: 600;
+  margin-top: 10px;
+  text-align: center;
+}

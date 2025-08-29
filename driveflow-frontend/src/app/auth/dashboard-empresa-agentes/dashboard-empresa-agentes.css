@@ -1,0 +1,72 @@
+.dashboard-empresa-agentes-container {
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-top: 2rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.dashboard-empresa-agentes-container h2 {
+  color: #d32f2f;
+  margin-bottom: 1rem;
+}
+
+.agentes-table-wrapper {
+  margin-top: 2rem;
+  overflow-x: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.agentes-table {
+  width: 80vw;
+  max-width: 900px;
+  min-width: 700px;
+  border-collapse: collapse;
+  background: #fafbfc;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.agentes-table th, .agentes-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+.agentes-table th {
+  background: #ffebee;
+  color: #d32f2f;
+  font-weight: 600;
+}
+.agentes-table tr:nth-child(even) {
+  background: #f5f7fa;
+}
+.agentes-table tr:hover {
+  background: #ffebee;
+}
+
+.status-cell {
+  text-align: center !important;
+  width: 60px;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: help;
+  transition: transform 0.2s ease;
+}
+
+.status-dot:hover {
+  transform: scale(1.2);
+}
+
+.dot-red { background: #e53935; }
+.dot-orange { background: #ff9800; }
+.dot-green { background: #43a047; }
+.dot-blue { background: #1976d2; }

@@ -1,0 +1,8 @@
+<div class="verify-container">
+  <h2>Verificación de Correo Electrónico</h2>
+  <p>{{ verificationStatus }}</p>
+  <p *ngIf="message">{{ message }}</p>
+  <button *ngIf="verificationStatus === 'Error de verificación'" (click)="router.navigate(['/register'])">
+    Volver al Registro
+  </button>
+</div>

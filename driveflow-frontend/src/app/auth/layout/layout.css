@@ -1,0 +1,214 @@
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+/* Sidebar con flexbox para separar arriba y abajo */
+.sidebar {
+  width: 60px;
+  background: black;
+  box-shadow: red; /* Sombra lateral derecha */
+  padding: 2rem 0rem 2rem 0;
+  border-right: 1px solid #23272e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100vh;
+  transition: width 0.3s cubic-bezier(.4,0,.2,1);
+  overflow-x: visible;
+  position: relative;
+  z-index: 10;
+}
+.sidebar:hover {
+  width: 240px;
+  transition: width 0.3s cubic-bezier(.4,0,.2,1);
+}
+.sidebar-top {
+  /* Espacio para logo/avatar/título */
+  display: block;
+}
+.sidebar-bottom {
+  margin-top: 5rem; /* Ajusta este valor para bajar el menú */
+}
+.sidebar h3 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+  margin-bottom: 2rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.sidebar:hover h3 {
+  opacity: 1;
+}
+.sidebar ul {
+  list-style: none;
+  padding-top: 2rem;
+  margin: 0;
+  width: 100%;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: opacity 0.2s;
+}
+.sidebar li {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+.sidebar li:last-child {
+  margin-bottom: 0;
+}
+.sidebar a {
+  display: flex !important;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 0.7rem 0;
+  border-radius: 8px;
+  border-left: none;
+  background: black;
+  box-shadow: 0 1px 4px rgba(255,0,0,0.04);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, color 0.2s, opacity 0.2s, box-shadow 0.2s, border 0.2s;
+  width: 100%;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border: 1.5px solid transparent;
+  justify-content: flex-start;
+  min-width: 0;
+}
+.sidebar a.active,
+.sidebar a:hover {
+  background: #e53935;
+  color: black;
+  border: 1.5px solid #e53935;
+  box-shadow: 0 2px 8px red;
+  border-left: none;
+}
+.sidebar-icon {
+  font-family: 'Material Icons';
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  color: inherit;
+  transition: color 0.2s;
+  opacity: 1 !important;
+}
+.sidebar-label {
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.sidebar:not(:hover) .sidebar-label {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+.sidebar a.active,
+.sidebar a:hover {
+  background: black;
+  color: white;
+}
+.main-content {
+  flex: 1;
+  padding: 2.5rem 3vw;
+  background: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* FORZAR VISIBILIDAD DEL SIDEBAR - REGLA ESPECÍFICA */
+.layout-container .sidebar ul,
+.layout-container .sidebar li,
+.layout-container .sidebar a,
+.layout-container .sidebar .sidebar-icon {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+}
+
+.layout-container .sidebar {
+  overflow: visible !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: none;
+    padding: 1rem;
+    position: relative;
+    overflow: visible;
+  }
+  
+  .sidebar:hover {
+    width: 100%;
+  }
+  
+  .sidebar h3, 
+  .sidebar ul, 
+  .sidebar a,
+  .sidebar-label {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .sidebar ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 0.5rem;
+  }
+  
+  .sidebar li {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .sidebar a {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .sidebar-icon {
+    font-size: 1.2rem;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar ul {
+    flex-direction: column;
+  }
+  
+  .sidebar li {
+    width: 100%;
+  }
+  
+  .sidebar a {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+}

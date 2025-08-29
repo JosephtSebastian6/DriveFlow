@@ -1,0 +1,24 @@
+<!-- src/app/login/login.component.html -->
+<div class="login-container">
+  <div class="login-card">
+    <h2 class="card-title">Iniciar Sesión</h2>
+    <!-- El formulario llama a la función onSubmit() del componente al ser enviado -->
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-field">
+        <label for="username">Usuario*</label>
+        <input type="text" id="username" name="username" [(ngModel)]="username" required>
+      </div>
+      <div class="form-field">
+        <label for="password">Contraseña*</label>
+        <input type="password" id="password" name="password" [(ngModel)]="password" required>
+      </div>
+      <button type="submit" class="login-button">Iniciar Sesión</button>
+    </form>
+    <!-- Muestra mensajes del componente aquí -->
+    <p *ngIf="message" class="message">{{ message }}</p>
+    <div class="links">
+      <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+      <a routerLink="/register">Registrarse aquí</a>
+    </div>
+  </div>
+</div>

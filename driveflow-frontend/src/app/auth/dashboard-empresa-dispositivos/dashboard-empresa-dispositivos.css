@@ -1,0 +1,464 @@
+:root {
+  --primary-color: #3498db;
+  --success-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --light-grey: #f4f4f4;
+  --dark-grey: #333;
+  --border-color: #ddd;
+}
+
+.dispositivos-container {
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fff;
+}
+
+h1 {
+  color: #e74c3c;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.busqueda-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.busqueda-section input {
+  flex-grow: 1;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.busqueda-section button {
+  padding: 0.8rem 1.5rem;
+  background-color: #e74c3c; /* Rojo visible */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.busqueda-section button:hover {
+  background-color: #c0392b;
+}
+
+.listas-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* iPhone SE, iPhone 12 mini - 375px */
+@media (max-width: 375px) {
+  .dispositivos-container {
+    padding: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .busqueda-section input {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  .busqueda-section button {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .lista-vehiculos {
+    padding: 0.8rem;
+  }
+
+  .lista-vehiculos h2 {
+    font-size: 1rem;
+  }
+
+  .resultados-section li {
+    padding: 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .activacion-section button {
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* iPhone 11, 12, 13, 14 - 390px-428px */
+@media (min-width: 376px) and (max-width: 428px) {
+  .dispositivos-container {
+    padding: 1rem;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .busqueda-section {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .busqueda-section input {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .busqueda-section button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  .lista-vehiculos {
+    padding: 1rem;
+  }
+
+  .resultados-section li {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .activacion-section button {
+    width: 100%;
+    padding: 1.1rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .lista-vehiculos h2 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Tablets y móviles grandes - 429px-768px */
+@media (min-width: 429px) and (max-width: 768px) {
+  .dispositivos-container {
+    padding: 1.2rem;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+
+  .busqueda-section {
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .busqueda-section input {
+    flex-grow: 1;
+    padding: 0.9rem;
+  }
+
+  .busqueda-section button {
+    padding: 0.9rem 1.8rem;
+    min-width: 120px;
+  }
+
+  .lista-vehiculos {
+    padding: 1.2rem;
+  }
+
+  .resultados-section li {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  .activacion-section button {
+    width: 80%;
+    max-width: 300px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+}
+
+/* iPad y tablets - 769px-1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dispositivos-container {
+    padding: 1.5rem;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .busqueda-section {
+    gap: 1rem;
+  }
+
+  .busqueda-section input {
+    padding: 0.9rem;
+  }
+
+  .busqueda-section button {
+    padding: 0.9rem 2rem;
+  }
+
+  .lista-vehiculos {
+    padding: 1.3rem;
+  }
+
+  .activacion-section button {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Laptops pequeños - 1025px-1366px */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .dispositivos-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .lista-vehiculos {
+    padding: 1.5rem;
+  }
+
+  .activacion-section button {
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Laptops grandes y monitores - 1367px+ */
+@media (min-width: 1367px) {
+  .dispositivos-container {
+    padding: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .lista-vehiculos {
+    padding: 2rem;
+  }
+
+  .busqueda-section {
+    max-width: 800px;
+    margin: 0 auto 2rem auto;
+  }
+
+  .activacion-section {
+    max-width: 600px;
+    margin: 2rem auto 0 auto;
+  }
+
+  .activacion-section button {
+    padding: 1.2rem 3.5rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* ===== ORIENTACIÓN Y DISPOSITIVOS ESPECÍFICOS ===== */
+
+/* Landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .dispositivos-container {
+    padding: 0.8rem;
+  }
+
+  .listas-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .busqueda-section {
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .busqueda-section input {
+    flex-grow: 1;
+  }
+
+  .busqueda-section button {
+    width: auto;
+    min-width: 100px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
+/* iPhone 14 Pro Max específico - 430px */
+@media (min-width: 428px) and (max-width: 430px) {
+  .dispositivos-container {
+    padding: 1rem;
+  }
+
+  .activacion-section button {
+    width: 95%;
+    padding: 1.1rem 2rem;
+  }
+}
+
+/* iPad Pro y tablets grandes - Portrait */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait) {
+  .listas-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .dispositivos-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+}
+
+/* Monitores ultra anchos - 1920px+ */
+@media (min-width: 1920px) {
+  .dispositivos-container {
+    max-width: 1600px;
+    padding: 3rem;
+  }
+
+  .listas-container {
+    gap: 3rem;
+  }
+
+  .busqueda-section {
+    max-width: 900px;
+  }
+}
+
+.lista-vehiculos {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: var(--light-grey);
+}
+
+.lista-vehiculos h2 {
+  margin-top: 0;
+  font-size: 1.3em;
+  padding-bottom: 0.8rem;
+  color: #c0392b;
+}
+
+/* Estilos específicos para la lista de activos */
+.lista-vehiculos.activos h2 {
+  border-bottom: 3px solid var(--success-color);
+}
+
+/* Estilos específicos para la lista de inactivos */
+.lista-vehiculos.inactivos h2 {
+  border-bottom: 3px solid var(--danger-color);
+}
+
+.lista-vehiculos ul {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.lista-vehiculos li {
+  padding: 0.8rem 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  color: #555;
+}
+
+.lista-vehiculos li:last-child {
+  border-bottom: none;
+}
+
+.resultados-section {
+  margin-top: 2rem;
+}
+
+.resultados-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.resultados-section li {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resultados-section li.selected {
+  background-color: #eaf5ff;
+  border-left: 5px solid var(--primary-color);
+  font-weight: bold;
+}
+
+.resultados-section li strong {
+  color: var(--danger-color);
+}
+
+.activacion-section {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.activacion-section button {
+  padding: 0.8rem 2rem;
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.activacion-section button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.activacion-section button:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.mensaje {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}

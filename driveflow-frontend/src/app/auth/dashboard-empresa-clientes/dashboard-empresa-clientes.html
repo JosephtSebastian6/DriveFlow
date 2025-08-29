@@ -1,0 +1,41 @@
+<div class="dashboard-empresa-clientes-container">
+  <h2>Clientes de la Empresa</h2>
+  <p>Aquí podrás ver y gestionar los clientes asociados a tu empresa.</p>
+  <div *ngIf="loading" class="clientes-loading">Cargando clientes...</div>
+  <div *ngIf="error" class="clientes-error">{{ error }}</div>
+  <div class="clientes-table-wrapper" *ngIf="!loading && !error">
+    <table class="clientes-table">
+      <thead>
+        <tr>
+          <th>Estado</th>
+          <th>Nombre</th>
+          <th>N° Identificación</th>
+          <th>Celular</th>
+          <th>Placa</th>
+          <th>Modelo</th>
+          <th>Color</th>
+          <th>Fecha SOAT</th>
+          <th>Fecha Tecnomecánica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cliente of clientes">
+          <td class="status-cell">
+            <span class="status-dot" [ngClass]="getStatusColor(cliente)" [title]="getStatusTooltip(cliente)"></span>
+          </td>
+          <td>{{ cliente.nombre }}</td>
+          <td>{{ cliente.identificacion }}</td>
+          <td>{{ cliente.celular }}</td>
+          <td>{{ cliente.placa }}</td>
+          <td>{{ cliente.modelo }}</td>
+          <td>{{ cliente.color }}</td>
+          <td>{{ cliente.fecha_soat }}</td>
+          <td>{{ cliente.fecha_tecno }}</td>
+        </tr>
+        <tr *ngIf="clientes.length === 0">
+          <td colspan="9" style="text-align:center; color:#888;">No hay clientes registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
