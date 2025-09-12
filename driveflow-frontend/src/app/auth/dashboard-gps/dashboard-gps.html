@@ -1,4 +1,31 @@
 <div class="dashboard-gps-container">
+  <!-- Controles de Ruta -->
+  <div class="route-controls">
+    <input class="route-input" type="text" placeholder="Ingresa un destino (dirección, lugar, ciudad)" [(ngModel)]="destinationQuery">
+    <button class="route-btn" (click)="useMyLocation()">Usar mi ubicación</button>
+    <button class="route-btn" (click)="traceRoute()">Trazar ruta</button>
+    <button class="route-btn" (click)="clearRoute()">Limpiar</button>
+    <span class="hint">Origen: {{ currentPos ? (currentPos[0] | number:'1.5-5') + ', ' + (currentPos[1] | number:'1.5-5') : 'no definido' }}</span>
+    <div class="route-summary" *ngIf="routeDurationStr">
+      <span>Tiempo: <b>{{ routeDurationStr }}</b></span>
+      <span>Distancia: <b>{{ routeDistanceKm }} km</b></span>
+      <span>ETA: <b>{{ routeEtaStr }}</b></span>
+    </div>
+  </div>
+
+  <!-- Controles de paradas múltiples -->
+  <div class="stops-controls">
+    <input class="route-input" type="text" placeholder="Agregar parada intermedia" [(ngModel)]="stopQuery">
+    <button class="route-btn" (click)="addStopFromQuery()">Añadir parada</button>
+  </div>
+  <div class="stops-list" *ngIf="stops.length > 0">
+    <div class="stop-item" *ngFor="let s of stops; let i = index">
+      <span class="stop-dot">{{ i + 1 }}</span>
+      <span class="stop-label">{{ s.label || (s.lat | number:'1.5-5') + ', ' + (s.lon | number:'1.5-5') }}</span>
+      <button class="stop-remove" (click)="removeStop(i)">×</button>
+    </div>
+  </div>
+
   <div id="map"></div>
 
   <div *ngIf="showApagarVehiculo" class="overlay-container">
