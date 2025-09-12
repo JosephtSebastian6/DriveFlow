@@ -8,6 +8,14 @@
   width: 100%;
 }
 
+/* Columna contenedora centrada */
+.form-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
 .vehiculo-form {
   background: rgba(255,255,255,0.97);
   padding: 40px 32px;
@@ -19,7 +27,29 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  margin: 0 auto; /* Centrar */
 }
+
+.vehiculos-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centrada horizontalmente */
+  gap: 12px;
+  width: 100%;
+  margin: 8px 0 10px;
+}
+
+.vehiculos-label { color: #444; font-weight: 600; }
+
+.vehiculos-select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  min-width: 260px;
+  background: #fff;
+}
+
+.btn-danger { background: #c62828 !important; }
 
 .profile-image {
   width: 600px;

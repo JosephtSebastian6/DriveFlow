@@ -17,13 +17,24 @@ import { MatButtonModule } from '@angular/material/button';       // Para los bo
      // Si decides usar MatCard para tarjeta login
   ], // Añade CommonModule y RouterLink
   templateUrl: './home.html',
-  styleUrl: './home.css'
+  styleUrls: ['./home.css']
 })
 export class HomeComponent implements OnInit {
+  // Número de WhatsApp sin el signo '+' y en formato internacional (E.164 sin '+').
+  // Cambia este valor según tu operación.
+  whatsappPhone = '573153164146';
+  // Mensaje inicial que se abrirá en WhatsApp.
+  whatsappMessage = 'Hola, necesito asistencia inmediata para mi vehículo.';
 
   constructor() { }
 
   ngOnInit(): void {
+  }
+
+  whatsappLink(): string {
+    const base = 'https://wa.me/';
+    const text = encodeURIComponent(this.whatsappMessage);
+    return `${base}${this.whatsappPhone}?text=${text}`;
   }
 
 }

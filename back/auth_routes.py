@@ -83,6 +83,60 @@ async def upsert_vehiculo(vehiculo: dict = Body(...), db: Session = Depends(get_
     result = crud.upsert_vehiculo(db, vehiculo)
     return result
 
+# --- NUEVOS ENDPOINTS: SOPORTE MULTI-VEHÍCULO ---
+@authRouter.get("/vehiculos/{username}")
+async def list_vehiculos(username: str, db: Session = Depends(get_db)):
+    """Lista todos los vehículos de un usuario (cliente)"""
+    vehiculos = crud.get_vehiculos_by_username(db, username)
+    return [
+        {
+            "id": v.id,
+            "marca": v.marca,
+            "modelo": v.modelo,
+            "ano": v.ano,
+            "placa": v.placa,
+            "fecha_soat": v.fecha_soat,
+            "fecha_tecno": v.fecha_tecno,
+            "color": v.color,
+            "vehiculo_image_url": v.vehiculo_image_url,
+            "gps_activo": v.gps_activo,
+        }
+        for v in vehiculos
+    ]
+
+@authRouter.post("/vehiculos/{username}")
+async def create_vehiculo(username: str, data: dict = Body(...), db: Session = Depends(get_db)):
+    """Crea un nuevo vehículo para el usuario indicado"""
+    vehiculo = crud.create_vehiculo(db, username=username, data=data)
+    return {
+        "id": vehiculo.id,
+        "marca": vehiculo.marca,
+        "modelo": vehiculo.modelo,
+        "ano": vehiculo.ano,
+        "placa": vehiculo.placa,
+        "fecha_soat": vehiculo.fecha_soat,
+        "fecha_tecno": vehiculo.fecha_tecno,
+        "color": vehiculo.color,
+        "vehiculo_image_url": vehiculo.vehiculo_image_url,
+        "gps_activo": vehiculo.gps_activo,
+    }
+
+@authRouter.put("/vehiculos/{vehiculo_id}")
+async def update_vehiculo(vehiculo_id: int, data: dict = Body(...), db: Session = Depends(get_db)):
+    """Actualiza un vehículo por ID"""
+    updated = crud.update_vehiculo_by_id(db, vehiculo_id=vehiculo_id, data=data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    return updated
+
+@authRouter.delete("/vehiculos/{vehiculo_id}")
+async def delete_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):
+    """Elimina un vehículo por ID"""
+    ok = crud.delete_vehiculo_by_id(db, vehiculo_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    return {"deleted": True}
+
 # Endpoint para actualizar el perfil del cliente
 from fastapi import Body
 @authRouter.put("/update-perfil")

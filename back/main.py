@@ -52,11 +52,6 @@ async def read_root():
 async def read_param_item(q: Union[str, None] = None):
     return {"q": q}
 
-# Ruta para obtener parámetros en la ruta (ej: /items/5)
-@driveFlowApp.get("/items/{item_id}")
-async def read_paramInPath_item(item_id: int):
-    return {"item_id": item_id}
-
 # Ruta que combina parámetros de ruta y de query (ej: /items/5?q=texto)
 @driveFlowApp.get("/items/{item_id}")
 async def read_both_paramTypes_item(item_id: int, q: Union[str, None] = None):

@@ -2,7 +2,7 @@
   <h1>DriveFlow</h1>
   <nav>
     <div class="nav-links">
-      <button class="linea"><a>LÍNEA DE REACCIÓN</a></button>
+      <a class="linea" [href]="'tel:' + reactionPhone">LÍNEA DE REACCIÓN</a>
       <ng-container *ngIf="!isLoggedIn">
         <a routerLink="/login">Login</a>
         <span> | </span>

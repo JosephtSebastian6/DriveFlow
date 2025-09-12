@@ -69,6 +69,47 @@ from config import conf
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# ----------------- NUEVAS FUNCIONES VEHÍCULOS (multi-vehículo) -----------------
+def get_vehiculos_by_username(db: Session, username: str):
+    return db.query(models.Vehiculo).filter(models.Vehiculo.username == username).all()
+
+def create_vehiculo(db: Session, username: str, data: dict):
+    vehiculo = models.Vehiculo(
+        username=username,
+        marca=data.get('marca', ''),
+        modelo=data.get('modelo', ''),
+        ano=data.get('ano', ''),
+        placa=data.get('placa', ''),
+        fecha_soat=data.get('fecha_soat', ''),
+        fecha_tecno=data.get('fecha_tecno', ''),
+        color=data.get('color', ''),
+        vehiculo_image_url=data.get('vehiculo_image_url', ''),
+        gps_activo=data.get('gps_activo', False),
+    )
+    db.add(vehiculo)
+    db.commit()
+    db.refresh(vehiculo)
+    return vehiculo
+
+def update_vehiculo_by_id(db: Session, vehiculo_id: int, data: dict):
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id == vehiculo_id).first()
+    if not vehiculo:
+        return None
+    for key in ['marca','modelo','ano','placa','fecha_soat','fecha_tecno','color','vehiculo_image_url','gps_activo']:
+        if key in data:
+            setattr(vehiculo, key, data[key])
+    db.commit()
+    db.refresh(vehiculo)
+    return vehiculo
+
+def delete_vehiculo_by_id(db: Session, vehiculo_id: int):
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id == vehiculo_id).first()
+    if not vehiculo:
+        return False
+    db.delete(vehiculo)
+    db.commit()
+    return True
+
 # Función para registrar un nuevo usuario (sin cambios aquí)
 async def registro_user(db: Session, user: schemas.RegistroCreate, background_tasks: BackgroundTasks, request: Request):
     print(f"DEBUG CRUD: Iniciando registro para usuario: {user.username}, email: {user.email}") # <-- Nuevo log

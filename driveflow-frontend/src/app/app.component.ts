@@ -14,6 +14,8 @@ import { Subscription } from 'rxjs';
 export class AppComponent {
   title = 'DriveFlow App'; // Puedes cambiar el título de tu aplicación aquí
   isLoggedIn = false;
+  // Número de la línea de reacción (formato E.164 recomendado). Cambia este valor según tu operación.
+  reactionPhone: string = '+573153164146';
   private authSub: Subscription | undefined;
 
   // Simulación: aquí deberías consultar el estado real de autenticación (token, servicio, etc)

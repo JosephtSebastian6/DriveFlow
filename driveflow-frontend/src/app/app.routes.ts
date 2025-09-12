@@ -22,6 +22,8 @@ export const routes: Routes = [
   { path: 'auth/verify-email', component: VerifyEmailComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'email-verified-success', component: EmailVerifiedSuccessComponent },
+  // Home público fuera del Layout para evitar mostrar la sidebar
+  { path: 'home', component: HomeComponent },
   {
     path: '',
     component: LayoutComponent,
@@ -35,7 +37,6 @@ export const routes: Routes = [
       { path: 'dashboard-empresa-agentes', component: DashboardEmpresaAgentes },
       { path: 'dashboard-empresa-dispositivos', component: DashboardEmpresaDispositivos },
       { path: 'dashboard-mi-vehiculo', component: DashboardMiVehiculoComponent },
-      { path: 'home', component: HomeComponent },
     ]
   }
 ];
