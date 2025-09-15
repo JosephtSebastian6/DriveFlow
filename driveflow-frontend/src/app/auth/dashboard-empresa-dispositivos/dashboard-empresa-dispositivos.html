@@ -55,6 +55,7 @@
     <h2>Vehículo Seleccionado</h2>
     <p><strong>Placa:</strong> {{ vehiculoSeleccionado.placa }}</p>
     <p><strong>Propietario:</strong> {{ vehiculoSeleccionado.propietario_nombre }}</p>
-    <button (click)="activarGps()" [disabled]="!vehiculoSeleccionado">Activar GPS</button>
+    <button class="btn btn-primary" (click)="activarGps()" [disabled]="!vehiculoSeleccionado">Activar GPS</button>
+    <button class="btn btn-danger" (click)="desactivarGps()" [disabled]="!vehiculoSeleccionado">Desactivar GPS</button>
   </div>
 </div>

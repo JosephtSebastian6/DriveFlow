@@ -37,7 +37,7 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // Mostrar el botón solo si el usuario es funcionario o empresa
     const tipo = localStorage.getItem('tipo_usuario');
-    this.showApagarVehiculo = tipo === 'funcionario' || tipo === 'empresa';
+    this.showApagarVehiculo = tipo === 'funcionario' || tipo === 'empresa' || tipo === 'administrador';
     
     // Cargar los agentes (funcionarios)
     this.loadAgentes();

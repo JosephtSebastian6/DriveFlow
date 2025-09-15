@@ -433,25 +433,47 @@ h1 {
   text-align: center;
 }
 
-.activacion-section button {
-  padding: 0.8rem 2rem;
-  background-color: var(--success-color);
-  color: white;
+/* Botones base */
+.activacion-section .btn {
+  padding: 0.8rem 1.4rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, transform 0.05s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin: 0 6px;
 }
 
-.activacion-section button:disabled {
+.activacion-section .btn:hover { transform: translateY(-1px); }
+.activacion-section .btn:active { transform: translateY(0); }
+
+/* Estilos por tipo */
+.activacion-section .btn-primary {
+  background-color: #1976d2; /* azul visible sobre fondo claro */
+  border: 1px solid #1259a7;
+  color: #fff;
+}
+.activacion-section .btn-primary:hover { background-color: #1259a7; }
+
+.activacion-section .btn-danger {
+  background-color: #e53935; /* rojo vivo */
+  border: 1px solid #c62828;
+  color: #fff;
+}
+.activacion-section .btn-danger:hover { background-color: #c62828; }
+
+.activacion-section .btn:disabled {
   background-color: #bdc3c7;
+  color: #f4f4f4;
   cursor: not-allowed;
 }
 
-.activacion-section button:hover:not(:disabled) {
-  background-color: #27ae60;
-}
 
 .mensaje {
   text-align: center;

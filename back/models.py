@@ -45,6 +45,8 @@ class Registro(Base):
     email= Column(String(150), nullable=True)
 
     email_verified = Column(Boolean, default=False)
+    # Nuevo campo para bloqueo explícito de cuenta
+    bloqueado = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
     tipo_usuario = Column(String(20), nullable=False)  # cliente, funcionario, empresa
     token_expires_at = Column(DateTime, nullable=True)

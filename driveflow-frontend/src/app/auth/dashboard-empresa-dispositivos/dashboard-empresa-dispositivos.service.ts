@@ -33,4 +33,8 @@ export class DispositivosService {
   activarGps(placa: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/vehiculos/activar-gps`, { placa });
   }
+
+  desactivarGps(placa: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/vehiculos/desactivar-gps`, { placa });
+  }
 }

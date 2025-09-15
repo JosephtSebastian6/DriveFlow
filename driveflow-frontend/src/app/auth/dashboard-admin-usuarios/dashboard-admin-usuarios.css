@@ -1,0 +1,46 @@
+.admin-usuarios-container{max-width:1000px;margin:2.5rem auto;padding:0;background:#fff;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.08);overflow:hidden}
+.admin-usuarios-container h1{margin:0;color:#0f172a;font-size:1.25rem;padding:14px 18px;border-bottom:1px solid #eef1f6;background:linear-gradient(180deg,#fafcff, #f4f7fb)}
+.info-box{background:#f4f7fb;border:1px solid #e3e9f3;border-radius:10px;padding:1rem 1.25rem}
+.info-box ul{margin:0.5rem 0 0 1rem}
+
+/* Toolbar de filtros */
+.info-box{margin:14px;border-radius:10px;display:flex;align-items:center;gap:10px}
+.info-box label{font-weight:600;color:#334155}
+.info-box select{min-width:170px;padding:8px 12px;border:1px solid #d7deea;border-radius:10px;background:#fff;color:#0f172a;font-weight:600;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%2362748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:34px;transition:border-color .15s ease}
+.info-box select:focus{outline:none;border-color:#94b8ff;box-shadow:0 0 0 3px rgba(25,118,210,.15)}
+
+.tabla table{border-collapse: collapse;width:100%;}
+.tabla thead th{position:sticky;top:0;background:#f7f7f9;color:#1f2937;text-align:left;padding:12px 14px;border-bottom:1px solid #e6e6ef;font-weight:700;font-size:.9rem;z-index:1}
+.tabla tbody td{padding:12px 14px;border-bottom:1px solid #f2f4f9;color:#0f172a;font-size:.92rem}
+.tabla tbody tr:nth-child(odd){background:#fcfdff}
+.tabla tbody tr:hover{background:#eef6ff}
+
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#eaf2ff;color:#1a73e8;font-weight:700;font-size:.85rem}
+
+/* Select y checkbox dentro de la tabla */
+.tabla select{padding:6px 10px;border:1px solid #dbe3ef;border-radius:8px;background:#fff;color:#0f172a;font-weight:600;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%2362748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.tabla select:disabled{opacity:.6;cursor:not-allowed}
+.tabla select.role-select{border-radius:999px;padding:6px 14px;background:#eaf2ff;color:#1a73e8;border:1px solid #eaf2ff}
+.tabla select.role-select.is-admin,
+.tabla select.role-select.is-empresa,
+.tabla select.role-select.is-funcionario,
+.tabla select.role-select.is-cliente{background:#eaf2ff;color:#1a73e8;border:1px solid #eaf2ff}
+.tabla input[type="checkbox"]{width:18px;height:18px;accent-color:#1976d2;cursor:pointer}
+.tabla input[type="checkbox"][disabled]{opacity:.6;cursor:not-allowed}
+
+/* Botones reutilizables locales */
+.btn{padding:8px 12px;border:1px solid #d7deea;border-radius:10px;background:#fff;color:#0f172a;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:all .15s ease}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary{background:#1976d2;border-color:#1259a7;color:#fff}
+.btn-primary:hover{background:#1259a7}
+.btn-secondary{background:#f1f5f9;border-color:#d7deea;color:#0f172a}
+.btn-secondary:hover{background:#e6eef7}
+
+/* Contador y paginación */
+.results-counter{color:#475569;font-weight:700;margin-left:6px}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);color:#fff;z-index:10000;animation:fadein .2s ease;}
+.toast-success{background:#2e7d32}
+.toast-error{background:#c62828}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}

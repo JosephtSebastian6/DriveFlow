@@ -86,4 +86,20 @@ export class DashboardEmpresaDispositivos implements OnInit {
       });
     }
   }
+
+  desactivarGps() {
+    if (this.vehiculoSeleccionado) {
+      this.dispositivosService.desactivarGps(this.vehiculoSeleccionado.placa).subscribe(response => {
+        this.mensaje = response.message;
+        this.vehiculoSeleccionado = null;
+        this.vehiculos = [];
+        this.placaBusqueda = '';
+        this.cargarVehiculosActivos();
+        this.cargarVehiculosInactivos();
+      }, error => {
+        this.mensaje = 'Error al desactivar el GPS.';
+        console.error(error);
+      });
+    }
+  }
 }

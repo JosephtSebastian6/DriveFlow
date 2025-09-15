@@ -12,6 +12,7 @@ import crud
 import models
 import schemas
 from Clever_MySQL_conn import get_db
+from sqlalchemy import func, or_, and_
 
 
 # Local imports
@@ -84,58 +85,6 @@ async def upsert_vehiculo(vehiculo: dict = Body(...), db: Session = Depends(get_
     return result
 
 # --- NUEVOS ENDPOINTS: SOPORTE MULTI-VEHÍCULO ---
-@authRouter.get("/vehiculos/{username}")
-async def list_vehiculos(username: str, db: Session = Depends(get_db)):
-    """Lista todos los vehículos de un usuario (cliente)"""
-    vehiculos = crud.get_vehiculos_by_username(db, username)
-    return [
-        {
-            "id": v.id,
-            "marca": v.marca,
-            "modelo": v.modelo,
-            "ano": v.ano,
-            "placa": v.placa,
-            "fecha_soat": v.fecha_soat,
-            "fecha_tecno": v.fecha_tecno,
-            "color": v.color,
-            "vehiculo_image_url": v.vehiculo_image_url,
-            "gps_activo": v.gps_activo,
-        }
-        for v in vehiculos
-    ]
-
-@authRouter.post("/vehiculos/{username}")
-async def create_vehiculo(username: str, data: dict = Body(...), db: Session = Depends(get_db)):
-    """Crea un nuevo vehículo para el usuario indicado"""
-    vehiculo = crud.create_vehiculo(db, username=username, data=data)
-    return {
-        "id": vehiculo.id,
-        "marca": vehiculo.marca,
-        "modelo": vehiculo.modelo,
-        "ano": vehiculo.ano,
-        "placa": vehiculo.placa,
-        "fecha_soat": vehiculo.fecha_soat,
-        "fecha_tecno": vehiculo.fecha_tecno,
-        "color": vehiculo.color,
-        "vehiculo_image_url": vehiculo.vehiculo_image_url,
-        "gps_activo": vehiculo.gps_activo,
-    }
-
-@authRouter.put("/vehiculos/{vehiculo_id}")
-async def update_vehiculo(vehiculo_id: int, data: dict = Body(...), db: Session = Depends(get_db)):
-    """Actualiza un vehículo por ID"""
-    updated = crud.update_vehiculo_by_id(db, vehiculo_id=vehiculo_id, data=data)
-    if not updated:
-        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    return updated
-
-@authRouter.delete("/vehiculos/{vehiculo_id}")
-async def delete_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):
-    """Elimina un vehículo por ID"""
-    ok = crud.delete_vehiculo_by_id(db, vehiculo_id)
-    if not ok:
-        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    return {"deleted": True}
 
 # Endpoint para actualizar el perfil del cliente
 from fastapi import Body
@@ -174,6 +123,9 @@ def login(user: schemas.LoginUsuario, db: Session = Depends(get_db)):  # Importa
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
 
     print(f"DEBUG LOGIN: tipo_usuario={getattr(usuario, 'tipo_usuario', None)}")
+    # Política: si 'bloqueado' es True, no permitimos login
+    if getattr(usuario, 'bloqueado', False) is True:
+        raise HTTPException(status_code=403, detail="Usuario bloqueado. Contacte al administrador.")
     expire = datetime.utcnow() + timedelta(minutes=EXPIRATION_MINUTES)
     to_encode = {"sub": usuario.username, "exp": expire}
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -331,6 +283,75 @@ async def get_clientes(db: Session = Depends(get_db)):
         })
     return resultado
 
+# --- ADMIN: Gestión de usuarios ---
+@authRouter.get("/admin/usuarios")
+async def admin_list_usuarios(rol: str | None = None, db: Session = Depends(get_db)):
+    """Lista usuarios. Si 'rol' se provee, filtra por tipo_usuario.
+    Retorna un subconjunto seguro de campos.
+    """
+    q = db.query(models.Registro)
+    if rol:
+        q = q.filter(models.Registro.tipo_usuario == rol)
+    usuarios = q.all()
+    return [
+        {
+            "username": u.username,
+            "nombres": u.nombres,
+            "apellidos": u.apellidos,
+            "email": u.email,
+            "telefono": u.telefono,
+            "tipo_usuario": u.tipo_usuario,
+            "email_verified": u.email_verified,
+            "bloqueado": getattr(u, 'bloqueado', False),
+        }
+        for u in usuarios
+    ]
+
+class CambiarRolRequest(BaseModel):
+    rol: str
+
+@authRouter.put("/admin/usuarios/{username}/rol")
+async def admin_cambiar_rol(username: str, body: CambiarRolRequest, db: Session = Depends(get_db)):
+    roles_validos = {"cliente", "funcionario", "empresa", "administrador"}
+    if body.rol not in roles_validos:
+        raise HTTPException(status_code=400, detail="Rol inválido")
+    u = db.query(models.Registro).filter(models.Registro.username == username).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    u.tipo_usuario = body.rol
+    db.commit()
+    return {"message": f"Rol actualizado a '{body.rol}' para {username}"}
+
+class BloqueoRequest(BaseModel):
+    bloqueado: bool
+
+@authRouter.put("/admin/usuarios/{username}/bloqueo")
+async def admin_bloquear_usuario(username: str, body: BloqueoRequest, db: Session = Depends(get_db)):
+    u = db.query(models.Registro).filter(models.Registro.username == username).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    # Usamos el campo dedicado 'bloqueado'
+    setattr(u, 'bloqueado', bool(body.bloqueado))
+    db.commit()
+    estado = "bloqueado" if body.bloqueado else "desbloqueado"
+    return {"message": f"Usuario {estado}: {username}"}
+
+@authRouter.get("/vehiculos/debug")
+async def vehiculos_debug(db: Session = Depends(get_db)):
+    """Endpoint de diagnóstico: devuelve conteos y muestras sin filtros para verificar la conexión y datos reales."""
+    total = db.query(models.Vehiculo).count()
+    sample = db.query(models.Vehiculo.placa, models.Vehiculo.gps_activo).limit(10).all()
+    # Normalización de muestras
+    norm = [
+        {
+            "placa": p or None,
+            "placa_norm": (p or "").lower().replace(" ", "").replace("-", ""),
+            "gps_activo": g
+        }
+        for (p, g) in sample
+    ]
+    return {"total": total, "sample": norm}
+
 @authRouter.get("/empresa/agentes")
 async def get_agentes(db: Session = Depends(get_db)):
     agentes = db.query(models.Registro).filter(models.Registro.tipo_usuario == "funcionario").all()
@@ -353,9 +374,15 @@ async def get_agentes(db: Session = Depends(get_db)):
 async def search_vehiculos(placa: str, db: Session = Depends(get_db)):
     if not placa:
         return []
-    
-    vehiculos = db.query(models.Vehiculo).filter(models.Vehiculo.placa.ilike(f"%{placa}%")).all()
-    
+    # Búsqueda robusta: insensible a mayúsculas/minúsculas, espacios y guiones
+    raw = (placa or '').strip()
+    term_norm = f"%{raw.replace(' ', '').replace('-', '')}%"
+
+    placa_norm_expr = func.replace(func.replace(func.lower(models.Vehiculo.placa), ' ', ''), '-', '')
+    vehiculos = db.query(models.Vehiculo).filter(
+        placa_norm_expr.like(func.lower(term_norm))
+    ).all()
+
     if not vehiculos:
         return []
 
@@ -378,7 +405,9 @@ class PlacaRequest(BaseModel):
 
 @authRouter.post("/vehiculos/activar-gps")
 async def activar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
-    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.placa == request.placa).first()
+    # Comparación tolerante a mayúsculas/minúsculas y espacios
+    placa_norm = (request.placa or "").strip()
+    vehiculo = db.query(models.Vehiculo).filter(func.lower(models.Vehiculo.placa) == func.lower(placa_norm)).first()
     if not vehiculo:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
     
@@ -387,34 +416,49 @@ async def activar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
     
     return {"message": f"GPS activado para el vehículo con placa {vehiculo.placa}"}
 
+@authRouter.post("/vehiculos/desactivar-gps")
+async def desactivar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
+    # Comparación tolerante a mayúsculas/minúsculas y espacios
+    placa_norm = (request.placa or "").strip()
+    vehiculo = db.query(models.Vehiculo).filter(func.lower(models.Vehiculo.placa) == func.lower(placa_norm)).first()
+    if not vehiculo:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    
+    vehiculo.gps_activo = False
+    db.commit()
+    
+    return {"message": f"GPS desactivado para el vehículo con placa {vehiculo.placa}"}
+
 @authRouter.get("/vehiculos/activos")
 async def get_vehiculos_activos(db: Session = Depends(get_db)):
-    vehiculos = db.query(models.Vehiculo).filter(models.Vehiculo.gps_activo == True).all()
+    # Aceptar 1 o True (MySQL TinyInt) como activo
+    vehiculos = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == True, models.Vehiculo.gps_activo == 1)).all()
     resultado = []
     for vehiculo in vehiculos:
         propietario = db.query(models.Registro).filter(models.Registro.username == vehiculo.username).first()
-        if propietario:
-            resultado.append({
-                "placa": vehiculo.placa,
-                "modelo": vehiculo.modelo,
-                "color": vehiculo.color,
-                "propietario_nombre": f"{propietario.nombres} {propietario.apellidos}",
-                "propietario_tipo": propietario.tipo_usuario
-            })
+        resultado.append({
+            "username": vehiculo.username,
+            "placa": vehiculo.placa,
+            "modelo": vehiculo.modelo,
+            "color": vehiculo.color,
+            "propietario_nombre": f"{propietario.nombres} {propietario.apellidos}" if propietario else None,
+            "propietario_tipo": propietario.tipo_usuario if propietario else None
+        })
     return resultado
 
 @authRouter.get("/vehiculos/inactivos")
 async def get_vehiculos_inactivos(db: Session = Depends(get_db)):
-    vehiculos = db.query(models.Vehiculo).filter(models.Vehiculo.gps_activo.is_(False) | (models.Vehiculo.gps_activo == None)).all()
+    # Inactivo si es False, 0 o NULL
+    vehiculos = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == False, models.Vehiculo.gps_activo == 0, models.Vehiculo.gps_activo.is_(None))).all()
     resultado = []
     for vehiculo in vehiculos:
         propietario = db.query(models.Registro).filter(models.Registro.username == vehiculo.username).first()
-        if propietario:
-            resultado.append({
-                "placa": vehiculo.placa,
-                "modelo": vehiculo.modelo,
-                "color": vehiculo.color,
-                "propietario_nombre": f"{propietario.nombres} {propietario.apellidos}",
-                "propietario_tipo": propietario.tipo_usuario
-            })
+        resultado.append({
+            "username": vehiculo.username,
+            "placa": vehiculo.placa,
+            "modelo": vehiculo.modelo,
+            "color": vehiculo.color,
+            "propietario_nombre": f"{propietario.nombres} {propietario.apellidos}" if propietario else None,
+            "propietario_tipo": propietario.tipo_usuario if propietario else None
+        })
     return resultado

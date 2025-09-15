@@ -1,0 +1,63 @@
+<div class="admin-usuarios-container">
+  <h1>Usuarios</h1>
+  <div class="info-box" style="margin-bottom: 1rem;">
+    <label for="rol">Filtrar por rol:</label>
+    <select id="rol" [(ngModel)]="rolFiltro" (change)="cargarUsuarios()">
+      <option value="">Todos</option>
+      <option value="cliente">Cliente</option>
+      <option value="funcionario">Funcionario</option>
+      <option value="empresa">Empresa</option>
+      <option value="administrador">Administrador</option>
+    </select>
+    <input type="text" placeholder="Buscar (username, nombre, email, rol)" [(ngModel)]="searchText" (input)="onSearchChange()" style="flex:1; padding:8px 12px; border:1px solid #d7deea; border-radius:10px;">
+    <select [(ngModel)]="pageSize" (change)="onPageSizeChange(pageSize)" title="Por página">
+      <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}/pág</option>
+    </select>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+      <button class="btn btn-primary" (click)="prevPage()" [disabled]="pageIndex === 1">Anterior</button>
+      <span style="color:#475569; font-weight:600;">{{ pageIndex }} / {{ maxPage }}</span>
+      <button class="btn btn-primary" (click)="nextPage()" [disabled]="pageIndex >= maxPage">Siguiente</button>
+    </div>
+  </div>
+
+  <div class="tabla">
+    <table width="100%" cellspacing="0" cellpadding="0">
+      <thead>
+        <tr>
+          <th (click)="setSort('username')" style="cursor:pointer;">Username <span style="opacity:.6;">{{ sortKey==='username' ? (sortDir==='asc' ? '▲' : '▼') : '' }}</span></th>
+          <th (click)="setSort('nombre')" style="cursor:pointer;">Nombre <span style="opacity:.6;">{{ sortKey==='nombre' ? (sortDir==='asc' ? '▲' : '▼') : '' }}</span></th>
+          <th (click)="setSort('email')" style="cursor:pointer;">Email <span style="opacity:.6;">{{ sortKey==='email' ? (sortDir==='asc' ? '▲' : '▼') : '' }}</span></th>
+          <th (click)="setSort('telefono')" style="cursor:pointer;">Teléfono <span style="opacity:.6;">{{ sortKey==='telefono' ? (sortDir==='asc' ? '▲' : '▼') : '' }}</span></th>
+          <th (click)="setSort('rol')" style="cursor:pointer;">Rol <span style="opacity:.6;">{{ sortKey==='rol' ? (sortDir==='asc' ? '▲' : '▼') : '' }}</span></th>
+          <th>Bloqueado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of pagedUsuarios">
+          <td>{{ u.username }}</td>
+          <td>{{ u.nombres }} {{ u.apellidos }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.telefono }}</td>
+          <td>
+            <select class="role-select" [ngClass]="roleClass(u.tipo_usuario)" [disabled]="loadingRolUser === u.username" [ngModel]="u.tipo_usuario" (ngModelChange)="onChangeRol(u, $event)">
+              <option *ngFor="let r of rolesDisponibles" [value]="r">{{ r }}</option>
+            </select>
+          </td>
+          <td>
+            <label style="display:inline-flex; align-items:center; gap:6px;">
+              <input type="checkbox" [disabled]="loadingBloqueoUser === u.username" [(ngModel)]="u.bloqueado" (ngModelChange)="onToggleBloqueo(u, !$event)">
+              <span>{{ u.bloqueado ? 'Sí' : 'No' }}</span>
+            </label>
+          </td>
+        </tr>
+        <tr *ngIf="usuarios.length === 0">
+          <td colspan="6" style="text-align:center; padding: 12px; color:#777;">Sin resultados</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="toastMessage" [ngClass]="{'toast': true, 'toast-success': toastType==='success', 'toast-error': toastType==='error'}">
+    {{ toastMessage }}
+  </div>
+</div>
