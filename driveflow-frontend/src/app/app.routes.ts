@@ -17,6 +17,7 @@ import { DashboardEmpresaClientesComponent } from './auth/dashboard-empresa-clie
 import { DashboardEmpresaAgentes } from './auth/dashboard-empresa-agentes/dashboard-empresa-agentes';
 import { DashboardEmpresaDispositivos } from './auth/dashboard-empresa-dispositivos/dashboard-empresa-dispositivos';
 import { DashboardAdminUsuariosComponent } from './auth/dashboard-admin-usuarios/dashboard-admin-usuarios';
+import { DashboardEmpresaAsignarComponent } from './auth/dashboard-empresa-asignar/dashboard-empresa-asignar';
 
 export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
@@ -40,6 +41,7 @@ export const routes: Routes = [
       { path: 'dashboard-empresa-clientes', component: DashboardEmpresaClientesComponent },
       { path: 'dashboard-empresa-agentes', component: DashboardEmpresaAgentes },
       { path: 'dashboard-empresa-dispositivos', component: DashboardEmpresaDispositivos },
+      { path: 'dashboard-empresa-asignar', component: DashboardEmpresaAsignarComponent },
       { path: 'dashboard-mi-vehiculo', component: DashboardMiVehiculoComponent },
     ]
   }

@@ -17,6 +17,7 @@ export class DashboardRedirectComponent implements OnInit {
         this.router.navigateByUrl('/dashboard-admin-usuarios');
         break;
       case 'empresa':
+      case 'pime':
         this.router.navigateByUrl('/dashboard-empresa-clientes');
         break;
       case 'funcionario':

@@ -63,6 +63,17 @@
           <input type="text" [(ngModel)]="perfil.profile_image_url" name="profile_image_url" placeholder="https://...">
         </div>
       </div>
+      <!-- Campos extra para PIME -->
+      <div class="form-row" *ngIf="(perfil.tipo_usuario || '').toLowerCase() === 'pime'">
+        <div>
+          <label>RUT</label>
+          <input type="text" [(ngModel)]="perfil.rut" name="rut" placeholder="RUT">
+        </div>
+        <div>
+          <label>Cámara y comercio</label>
+          <input type="text" [(ngModel)]="perfil.camara_comercio" name="camara_comercio" placeholder="Número de Cámara y Comercio">
+        </div>
+      </div>
       <button class="update-btn" type="submit">Actualizar Perfil</button>
       <div *ngIf="mensajeExito" class="mensaje-exito">{{mensajeExito}}</div>
     </form>

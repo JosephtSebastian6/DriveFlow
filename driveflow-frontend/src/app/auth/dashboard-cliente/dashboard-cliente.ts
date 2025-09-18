@@ -26,7 +26,11 @@ export class DashboardClienteComponent implements OnInit {
     ano_nacimiento: '',
     direccion: '',
     telefono: '',
-    profile_image_url: ''
+    profile_image_url: '',
+    // Soporte PIME
+    tipo_usuario: '',
+    rut: '',
+    camara_comercio: ''
   };
   vehiculo = {
     marca: '',
@@ -85,6 +89,18 @@ export class DashboardClienteComponent implements OnInit {
     next: () => {
       this.mensajeVehiculo = '¡Vehículo actualizado correctamente!';
       setTimeout(() => this.mensajeVehiculo = '', 3000);
+      // Refrescar perfil por si hubo promoción a PIME en backend
+      if (username) {
+        this.dashboardClienteService.getPerfil(username).subscribe((perfilActual: any) => {
+          this.perfil = { ...this.perfil, ...perfilActual };
+        });
+        // También consultar número de vehículos (multi-vehículo) y forzar UI si >=4
+        this.dashboardClienteService.listarVehiculos(username).subscribe((lista) => {
+          if (Array.isArray(lista) && lista.length >= 4 && (this.perfil.tipo_usuario || '').toLowerCase() !== 'pime') {
+            this.perfil.tipo_usuario = 'pime';
+          }
+        }, () => {});
+      }
     },
     error: () => {
       this.mensajeVehiculo = 'Error al actualizar el vehículo.';

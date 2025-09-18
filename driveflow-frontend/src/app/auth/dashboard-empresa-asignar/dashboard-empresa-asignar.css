@@ -1,0 +1,12 @@
+.asignar-container{max-width:980px;margin:24px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.asignar-container h2{margin:0 0 16px;color:#d32f2f}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+fieldset{border:1px solid #eee;border-radius:10px;padding:16px}
+legend{padding:0 8px;color:#444}
+label{display:block;margin-top:8px;color:#555;font-weight:600}
+input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px}
+button.primary{grid-column:1/-1;margin-top:12px;background:#d32f2f;color:#fff;border:none;padding:10px 16px;border-radius:8px;cursor:pointer}
+.result{margin-top:16px;padding:12px;background:#f6f7fb;border:1px solid #e0e4ef;border-radius:10px}
+.result code{background:#111;color:#fff;padding:4px 8px;border-radius:6px}
+.note{margin-top:8px;background:#fff4e5;border:1px solid #ffd699;color:#7a4a00;padding:8px 10px;border-radius:8px;font-size:13px}
+@media(max-width:800px){.form-grid{grid-template-columns:1fr}}

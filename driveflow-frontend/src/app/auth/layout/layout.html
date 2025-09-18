@@ -53,6 +53,12 @@
             <span class="sidebar-label">Dispositivos</span>
           </a>
         </li>
+        <li *ngIf="canSeeEmpresaBlocks()">
+          <a routerLink="/dashboard-empresa-asignar" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">add_circle</span>
+            <span class="sidebar-label">Asignar Vehículo</span>
+          </a>
+        </li>
       </ul>
     </div>
   </aside>

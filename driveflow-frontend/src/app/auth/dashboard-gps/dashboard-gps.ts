@@ -31,6 +31,8 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   routeDistanceKm: string | null = null;
   routeDurationStr: string | null = null;
   routeEtaStr: string | null = null;
+  // Feedback de acciones GPS
+  actionMessage: string | null = null;
 
   constructor(private agentesService: DashboardEmpresaAgentesService) {}
 
@@ -283,6 +285,45 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
       return `POR VENCER - Tecnomecánica en ${tecnoDaysLeft} días`;
     } else {
       return 'VIGENTE - Todos los documentos al día';
+    }
+  }
+
+  // --- Encendido/Apagado de vehículo por placa ---
+  async apagarVehiculo() {
+    const placa = prompt('Ingrese la placa del vehículo a apagar');
+    if (!placa) return;
+    try {
+      const res = await fetch('http://localhost:8000/auth/vehiculos/gps/desactivar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placa })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      this.actionMessage = data?.message || `Vehículo ${placa} apagado`;
+      setTimeout(() => this.actionMessage = null, 2500);
+    } catch (e) {
+      console.error(e);
+      alert('No fue posible apagar el vehículo.');
+    }
+  }
+
+  async encenderVehiculo() {
+    const placa = prompt('Ingrese la placa del vehículo a encender');
+    if (!placa) return;
+    try {
+      const res = await fetch('http://localhost:8000/auth/vehiculos/gps/activar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placa })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      this.actionMessage = data?.message || `Vehículo ${placa} encendido`;
+      setTimeout(() => this.actionMessage = null, 2500);
+    } catch (e) {
+      console.error(e);
+      alert('No fue posible encender el vehículo.');
     }
   }
 }

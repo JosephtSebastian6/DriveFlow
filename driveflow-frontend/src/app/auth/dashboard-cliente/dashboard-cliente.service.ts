@@ -27,11 +27,11 @@ export class DashboardClienteService {
 
   // ------- NUEVOS MÉTODOS: MULTI-VEHÍCULO -------
   listarVehiculos(username: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseAuthUrl}/vehiculos/${username}`);
+    return this.http.get<any[]>(`${this.baseAuthUrl}/usuarios/${username}/vehiculos`);
   }
 
   crearVehiculo(username: string, data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseAuthUrl}/vehiculos/${username}`, data);
+    return this.http.post<any>(`${this.baseAuthUrl}/usuarios/${username}/vehiculos`, data);
   }
 
   actualizarVehiculo(id: number, data: any): Observable<any> {

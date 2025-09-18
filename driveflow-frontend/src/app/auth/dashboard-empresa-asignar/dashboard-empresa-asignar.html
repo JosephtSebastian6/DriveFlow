@@ -1,0 +1,91 @@
+<div class="asignar-container">
+  <h2>Asignar vehículo a nuevo usuario</h2>
+  <form (ngSubmit)="crear()" class="form-grid">
+    <fieldset>
+      <legend>Datos del usuario</legend>
+      <label>Tipo de usuario</label>
+      <select [(ngModel)]="user.tipo_usuario" name="tipo_usuario">
+        <option value="funcionario">Funcionario</option>
+        <option value="cliente">Cliente</option>
+      </select>
+
+      <label>Username</label>
+      <input type="text" [(ngModel)]="user.username" name="username" required />
+
+      <label>Email</label>
+      <input type="email" [(ngModel)]="user.email" name="email" required />
+
+      <label>Nombres</label>
+      <input type="text" [(ngModel)]="user.nombres" name="nombres" />
+
+      <label>Apellidos</label>
+      <input type="text" [(ngModel)]="user.apellidos" name="apellidos" />
+
+      <label>Teléfono</label>
+      <input type="text" [(ngModel)]="user.telefono" name="telefono" />
+    </fieldset>
+
+    <fieldset>
+      <legend>Datos del vehículo</legend>
+      <label>Seleccionar de mis vehículos</label>
+      <select (change)="onSelectVehiculoExistente($event)">
+        <option value="">-- Selecciona un vehículo --</option>
+        <option *ngFor="let v of misVehiculos" [value]="v.id">{{ v.placa }} - {{ v.modelo }}</option>
+      </select>
+
+      <label *ngIf="selectedVehiculoId">
+        <input type="checkbox" [(ngModel)]="vehiculo.gps_activo" name="gps_activo" /> GPS activo
+      </label>
+
+      <div *ngIf="selectedVehiculoId" class="note">Has seleccionado un vehículo existente. Los campos del formulario no se pueden editar.</div>
+
+      <!-- Solo lectura cuando hay seleccionado -->
+      <div *ngIf="selectedVehiculoId; else editableVehiculo">
+        <div class="readonly">
+          <div><strong>Marca:</strong> {{ vehiculo.marca || '-' }}</div>
+          <div><strong>Modelo:</strong> {{ vehiculo.modelo || '-' }}</div>
+          <div><strong>Año:</strong> {{ vehiculo.ano || '-' }}</div>
+          <div><strong>Placa:</strong> {{ vehiculo.placa || '-' }}</div>
+          <div><strong>SOAT:</strong> {{ vehiculo.fecha_soat || '-' }}</div>
+          <div><strong>Tecnomecánica:</strong> {{ vehiculo.fecha_tecno || '-' }}</div>
+          <div><strong>Color:</strong> {{ vehiculo.color || '-' }}</div>
+          <div><strong>Imagen:</strong> <a *ngIf="vehiculo.vehiculo_image_url" [href]="vehiculo.vehiculo_image_url" target="_blank">Ver</a><span *ngIf="!vehiculo.vehiculo_image_url">-</span></div>
+        </div>
+      </div>
+      <!-- Editable cuando no hay seleccionado -->
+      <ng-template #editableVehiculo>
+        <label>Marca</label>
+        <input type="text" [(ngModel)]="vehiculo.marca" name="marca" />
+
+        <label>Modelo</label>
+        <input type="text" [(ngModel)]="vehiculo.modelo" name="modelo" />
+
+        <label>Año</label>
+        <input type="text" [(ngModel)]="vehiculo.ano" name="ano" />
+
+        <label>Placa</label>
+        <input type="text" [(ngModel)]="vehiculo.placa" name="placa" required />
+
+        <label>Fecha SOAT</label>
+        <input type="date" [(ngModel)]="vehiculo.fecha_soat" name="fecha_soat" />
+
+        <label>Fecha Tecnomecánica</label>
+        <input type="date" [(ngModel)]="vehiculo.fecha_tecno" name="fecha_tecno" />
+
+        <label>Color</label>
+        <input type="text" [(ngModel)]="vehiculo.color" name="color" />
+
+        <label>URL Imagen</label>
+        <input type="text" [(ngModel)]="vehiculo.vehiculo_image_url" name="vehiculo_image_url" />
+      </ng-template>
+    </fieldset>
+
+    <button class="primary" type="submit" [disabled]="loading">{{ loading ? 'Creando...' : 'Crear y asignar' }}</button>
+  </form>
+
+  <div *ngIf="resultMsg" class="result">
+    <p>{{ resultMsg }}</p>
+    <p *ngIf="tempPassword"><strong>Contraseña temporal:</strong> <code>{{ tempPassword }}</code></p>
+    <div class="note">Se envió un correo de verificación al usuario. Debe verificarlo antes de poder iniciar sesión.</div>
+  </div>
+</div>

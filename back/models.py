@@ -51,6 +51,9 @@ class Registro(Base):
     tipo_usuario = Column(String(20), nullable=False)  # cliente, funcionario, empresa
     token_expires_at = Column(DateTime, nullable=True)
     profile_image_url = Column(String(300), nullable=True)
+    # Campos PIME opcionales
+    rut = Column(String(100), nullable=True)
+    camara_comercio = Column(String(150), nullable=True)
 
 class Funcionario(Base):
     __tablename__ = "funcionario"
@@ -85,4 +88,5 @@ class VehiculoFuncionario(Base):
     fecha_tecno = Column(String(20))
     color = Column(String(30))
     vehiculo_image_url = Column(String(300))
+    gps_activo = Column(Boolean, default=False)
 

@@ -17,12 +17,12 @@ export class LayoutComponent {
   isAdmin(): boolean { return this.tipoUsuario === 'administrador'; }
   canSeeClienteVehiculo(): boolean {
     const t = this.tipoUsuario;
-    // Administrador NO ve "Mi Vehículo"
-    return t === 'cliente' || t === 'funcionario';
+    // Mostrar para cliente, funcionario, empresa, pime y administrador
+    return t === 'cliente' || t === 'funcionario' || t === 'empresa' || t === 'pime' || t === 'administrador';
   }
   canSeeEmpresaBlocks(): boolean {
     const t = this.tipoUsuario;
-    return t === 'empresa' || t === 'administrador';
+    return t === 'empresa' || t === 'administrador' || t === 'pime';
   }
   showPerfil(): boolean {
     const t = this.tipoUsuario;
