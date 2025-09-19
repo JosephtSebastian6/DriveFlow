@@ -541,8 +541,10 @@ class PlacaRequest(BaseModel):
     placa: str
 
 # Alias estables para evitar colisión con '/vehiculos/{username}'
+# Alias semánticos de 'power' para mayor claridad en el front
 @authRouter.post("/vehiculos/activar-gps")
 @authRouter.post("/vehiculos/gps/activar")
+@authRouter.post("/vehiculos/power/encender")
 async def activar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
     # Comparación tolerante a mayúsculas/minúsculas y espacios
     placa_norm = (request.placa or "").strip()
@@ -550,17 +552,18 @@ async def activar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
     if vehiculo:
         vehiculo.gps_activo = True
         db.commit()
-        return {"message": f"GPS activado para el vehículo con placa {vehiculo.placa}"}
+        return {"message": f"Vehículo encendido con placa {vehiculo.placa}"}
     # Intentar en funcionarios
     vfun = db.query(models.VehiculoFuncionario).filter(func.lower(models.VehiculoFuncionario.placa) == func.lower(placa_norm)).first()
     if vfun is not None and hasattr(vfun, 'gps_activo'):
         setattr(vfun, 'gps_activo', True)
         db.commit()
-        return {"message": f"GPS activado para el vehículo (funcionario) con placa {vfun.placa}"}
+        return {"message": f"Vehículo (funcionario) encendido con placa {vfun.placa}"}
     raise HTTPException(status_code=404, detail="Vehículo no encontrado")
 
 @authRouter.post("/vehiculos/desactivar-gps")
 @authRouter.post("/vehiculos/gps/desactivar")
+@authRouter.post("/vehiculos/power/apagar")
 async def desactivar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
     # Comparación tolerante a mayúsculas/minúsculas y espacios
     placa_norm = (request.placa or "").strip()
@@ -568,13 +571,13 @@ async def desactivar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
     if vehiculo:
         vehiculo.gps_activo = False
         db.commit()
-        return {"message": f"GPS desactivado para el vehículo con placa {vehiculo.placa}"}
+        return {"message": f"Vehículo apagado con placa {vehiculo.placa}"}
     # Intentar en funcionarios
     vfun = db.query(models.VehiculoFuncionario).filter(func.lower(models.VehiculoFuncionario.placa) == func.lower(placa_norm)).first()
     if vfun is not None and hasattr(vfun, 'gps_activo'):
         setattr(vfun, 'gps_activo', False)
         db.commit()
-        return {"message": f"GPS desactivado para el vehículo (funcionario) con placa {vfun.placa}"}
+        return {"message": f"Vehículo (funcionario) apagado con placa {vfun.placa}"}
     raise HTTPException(status_code=404, detail="Vehículo no encontrado")
 
 @authRouter.get("/vehiculos/activos")

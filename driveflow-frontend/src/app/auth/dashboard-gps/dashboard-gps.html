@@ -5,12 +5,14 @@
     <button class="route-btn" (click)="useMyLocation()">Usar mi ubicación</button>
     <button class="route-btn" (click)="traceRoute()">Trazar ruta</button>
     <button class="route-btn" (click)="clearRoute()">Limpiar</button>
+    <button class="route-btn" (click)="promptSetDemoLocation()" title="Ubicar vehículo de ejemplo">Ubicar demo</button>
     <span class="hint">Origen: {{ currentPos ? (currentPos[0] | number:'1.5-5') + ', ' + (currentPos[1] | number:'1.5-5') : 'no definido' }}</span>
     <div class="route-summary" *ngIf="routeDurationStr">
       <span>Tiempo: <b>{{ routeDurationStr }}</b></span>
       <span>Distancia: <b>{{ routeDistanceKm }} km</b></span>
       <span>ETA: <b>{{ routeEtaStr }}</b></span>
     </div>
+
   </div>
 
   <!-- Controles de paradas múltiples -->
@@ -32,7 +34,16 @@
     <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
       <button class="apagar-btn" (click)="apagarVehiculo()">Apagar Vehículo</button>
       <button class="apagar-btn" style="background:#2e7d32" (click)="encenderVehiculo()">Encender Vehículo</button>
-      <span *ngIf="actionMessage" style="margin-left:8px; color:#111; background:#fff; padding:6px 10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08);">{{ actionMessage }}</span>
+      <span *ngIf="actionMessage"
+        [ngStyle]="{
+          'margin-left':'8px',
+          'padding':'6px 10px',
+          'border-radius':'8px',
+          'box-shadow':'0 2px 8px rgba(0,0,0,.08)',
+          'background': (lastPowerAction==='apagado' ? '#fdecea' : '#e7f5ee'),
+          'color': (lastPowerAction==='apagado' ? '#b3261e' : '#1b5e20'),
+          'border': (lastPowerAction==='apagado' ? '1px solid #f5c2c7' : '1px solid #a5d6a7')
+        }">{{ actionMessage }}</span>
     </div>
     <div class="side-list-container">
       <div class="side-list-header">

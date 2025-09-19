@@ -26,6 +26,10 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   private map!: any;
   private routingControl: any | null = null;
   private L: any;
+  // Demo de ubicaciones por placa (solo frontend)
+  private demoLocations: Record<string, [number, number]> = {};
+  // Marcadores por placa para poder actualizar color/posición
+  private markersByPlaca: Record<string, any> = {};
 
   // Resumen de ruta
   routeDistanceKm: string | null = null;
@@ -33,16 +37,100 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   routeEtaStr: string | null = null;
   // Feedback de acciones GPS
   actionMessage: string | null = null;
+  // Estado de potencia del vehículo para UI
+  powerStatus: 'encendido' | 'apagado' | null = null;
+  lastPowerAction: 'encendido' | 'apagado' | null = null;
+  // Placas en estado 'apagado' para colorear indicador
+  powerOffPlacas: Set<string> = new Set<string>();
 
   constructor(private agentesService: DashboardEmpresaAgentesService) {}
 
   ngOnInit(): void {
     // Mostrar el botón solo si el usuario es funcionario o empresa
     const tipo = localStorage.getItem('tipo_usuario');
-    this.showApagarVehiculo = tipo === 'funcionario' || tipo === 'empresa' || tipo === 'administrador';
+    this.showApagarVehiculo = tipo === 'funcionario' || tipo === 'empresa' || tipo === 'administrador' || tipo === 'pime' || tipo === 'cliente';
     
     // Cargar los agentes (funcionarios)
     this.loadAgentes();
+
+    // Cargar ubicaciones demo de localStorage
+    try {
+      const raw = localStorage.getItem('demoLocations');
+      if (raw) this.demoLocations = JSON.parse(raw);
+    } catch {}
+  }
+
+  // --- DEMO: ubicaciones por placa ---
+  private saveDemoLocations(): void {
+    try {
+      localStorage.setItem('demoLocations', JSON.stringify(this.demoLocations));
+    } catch {}
+  }
+
+  async promptSetDemoLocation(): Promise<void> {
+    const placa = prompt('Placa del vehículo');
+    if (!placa) return;
+    const entrada = prompt('Ubicación (dirección o lat,lon)');
+    if (!entrada) return;
+    let coords: { lat: number; lon: number } | null = null;
+    const parts = entrada.split(',').map(p => p.trim());
+    if (parts.length === 2 && !Number.isNaN(Number(parts[0])) && !Number.isNaN(Number(parts[1]))) {
+      coords = { lat: Number(parts[0]), lon: Number(parts[1]) };
+    } else {
+      coords = await this.geocode(entrada);
+    }
+    if (!coords) {
+      alert('No se pudo obtener la ubicación');
+      return;
+    }
+    this.setDemoLocationForPlaca(placa, coords.lat, coords.lon);
+  }
+
+  setDemoLocationForPlaca(placa: string, lat: number, lon: number): void {
+    if (!this.map || !this.L) return;
+    const key = (placa || '').toUpperCase();
+    this.demoLocations[key] = [lat, lon];
+    this.saveDemoLocations();
+    this.upsertMarkerForPlaca(key, lat, lon);
+    this.map.setView([lat, lon], 15);
+  }
+
+  // --- Marcadores y estilos ---
+  private upsertMarkerForPlaca(key: string, lat: number, lon: number): void {
+    const L = this.L;
+    if (!L) return;
+    const style = this.getMarkerStyleForPlaca(key);
+    if (this.markersByPlaca[key]) {
+      // Si existe, actualiza posición y estilo
+      this.markersByPlaca[key].setLatLng([lat, lon]);
+      this.markersByPlaca[key].setStyle(style);
+    } else {
+      // Usamos circleMarker para poder cambiar colores fácilmente
+      const marker = L.circleMarker([lat, lon], {
+        radius: 9,
+        color: style.color,
+        fillColor: style.fillColor,
+        fillOpacity: 0.9,
+        weight: 2
+      }).addTo(this.map).bindPopup(`Vehículo ${key}`);
+      this.markersByPlaca[key] = marker;
+      marker.openPopup();
+    }
+  }
+
+  private updateMarkerAppearance(key: string): void {
+    const marker = this.markersByPlaca[key];
+    if (!marker) return;
+    const style = this.getMarkerStyleForPlaca(key);
+    marker.setStyle(style);
+  }
+
+  private getMarkerStyleForPlaca(key: string): { color: string; fillColor: string } {
+    // Si el vehículo está apagado -> rojo, si no -> verde (encendido)
+    const isOff = this.powerOffPlacas.has((key || '').toUpperCase());
+    return isOff
+      ? { color: '#b3261e', fillColor: '#ef5350' } // rojo
+      : { color: '#1b5e20', fillColor: '#66bb6a' }; // verde
   }
 
   private formatDuration(totalSeconds: number): string {
@@ -250,7 +338,11 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   }
 
   getStatusColor(agente: Agente): string {
-    // Lógica para determinar el color del estado basado en fechas SOAT/Tecno
+    // Prioridad 1: estado de potencia (apagado -> rojo)
+    if (agente?.placa && this.powerOffPlacas.has((agente.placa || '').toUpperCase())) {
+      return 'dot-red';
+    }
+    // Lógica por documentos (SOAT/Tecno)
     const today = new Date();
     const soatDate = new Date(agente.fecha_soat);
     const tecnoDate = new Date(agente.fecha_tecno);
@@ -264,6 +356,10 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   }
 
   getStatusTooltip(agente: Agente): string {
+    // Prioridad 1: estado de potencia
+    if (agente?.placa && this.powerOffPlacas.has((agente.placa || '').toUpperCase())) {
+      return 'APAGADO - Vehículo apagado manualmente';
+    }
     const today = new Date();
     const soatDate = new Date(agente.fecha_soat);
     const tecnoDate = new Date(agente.fecha_tecno);
@@ -299,8 +395,15 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
         body: JSON.stringify({ placa })
       });
       if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      this.actionMessage = data?.message || `Vehículo ${placa} apagado`;
+      // Estado visual como 'vehículo apagado'
+      this.actionMessage = `Vehículo ${placa} apagado`;
+      this.powerStatus = 'apagado';
+      this.lastPowerAction = 'apagado';
+      this.powerOffPlacas.add(placa.toUpperCase());
+      // Actualiza el marcador si existe
+      const key = placa.toUpperCase();
+      const loc = this.demoLocations[key];
+      if (loc) this.updateMarkerAppearance(key);
       setTimeout(() => this.actionMessage = null, 2500);
     } catch (e) {
       console.error(e);
@@ -318,8 +421,15 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
         body: JSON.stringify({ placa })
       });
       if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      this.actionMessage = data?.message || `Vehículo ${placa} encendido`;
+      // Estado visual como 'vehículo encendido'
+      this.actionMessage = `Vehículo ${placa} encendido`;
+      this.powerStatus = 'encendido';
+      this.lastPowerAction = 'encendido';
+      this.powerOffPlacas.delete(placa.toUpperCase());
+      // Actualiza el marcador si existe
+      const key = placa.toUpperCase();
+      const loc = this.demoLocations[key];
+      if (loc) this.updateMarkerAppearance(key);
       setTimeout(() => this.actionMessage = null, 2500);
     } catch (e) {
       console.error(e);

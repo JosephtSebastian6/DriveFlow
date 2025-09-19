@@ -63,8 +63,77 @@
       <button class="update-btn" type="submit">Guardar Vehículo</button>
       <div *ngIf="mensajeVehiculo" class="mensaje-exito">{{mensajeVehiculo}}</div>
     </form>
+
+    <!-- Adjuntos unificados: documentos a la izquierda -->
+    <div class="attachments-wrapper">
+      <h3 class="attachments-heading">Documentos del vehículo</h3>
+      <div class="attach-card single">
+        <div class="attach-title">Adjuntar documentos (SOAT / Tecnomecánica / Licencia)</div>
+        <div class="doc-rows">
+          <div class="doc-row">
+            <div class="doc-label">SOAT</div>
+            <div class="doc-preview" *ngIf="soatImage; else soatEmpty">
+              <img [src]="soatImage?.dataUrl" [alt]="soatImage?.name">
+            </div>
+            <ng-template #soatEmpty><div class="attach-empty">Sin archivo</div></ng-template>
+            <div class="doc-controls">
+              <label class="attach-btn">Subir<input type="file" accept="image/*" (change)="onSingleSelected($event, 'SOAT')"></label>
+              <button type="button" class="attach-btn danger" (click)="removeSingle('SOAT')" [disabled]="!soatImage">Eliminar</button>
+            </div>
+          </div>
+          <div class="doc-row">
+            <div class="doc-label">Tecnomecánica</div>
+            <div class="doc-preview" *ngIf="tecnoImage; else tecnoEmpty">
+              <img [src]="tecnoImage?.dataUrl" [alt]="tecnoImage?.name">
+            </div>
+            <ng-template #tecnoEmpty><div class="attach-empty">Sin archivo</div></ng-template>
+            <div class="doc-controls">
+              <label class="attach-btn">Subir<input type="file" accept="image/*" (change)="onSingleSelected($event, 'TECNO')"></label>
+              <button type="button" class="attach-btn danger" (click)="removeSingle('TECNO')" [disabled]="!tecnoImage">Eliminar</button>
+            </div>
+          </div>
+          <div class="doc-row">
+            <div class="doc-label">Licencia</div>
+            <div class="doc-preview" *ngIf="licenciaImage; else licenciaEmpty">
+              <img [src]="licenciaImage?.dataUrl" [alt]="licenciaImage?.name">
+            </div>
+            <ng-template #licenciaEmpty><div class="attach-empty">Sin archivo</div></ng-template>
+            <div class="doc-controls">
+              <label class="attach-btn">Subir<input type="file" accept="image/*" (change)="onSingleSelected($event, 'LICENCIA')"></label>
+              <button type="button" class="attach-btn danger" (click)="removeSingle('LICENCIA')" [disabled]="!licenciaImage">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fin columna izquierda -->
   </div>
-  <div class="profile-image">
-    <img [src]="vehiculo.vehiculo_image_url || 'https://www.yamavalle.com/wp-content/uploads/mt-03-roja.jpg'" alt="Foto del vehículo">
+  <div class="side-column">
+    <div class="profile-image">
+      <img [src]="vehiculo.vehiculo_image_url || 'https://www.yamavalle.com/wp-content/uploads/mt-03-roja.jpg'" alt="Foto del vehículo">
+    </div>
+    <!-- Solo Galería a la derecha -->
+      <!-- Galería general opcional -->
+      <div class="attachments gallery">
+        <div class="attach-title" style="grid-column: 1 / -1;">Galería de imágenes</div>
+        <div class="attach-actions" style="grid-column: 1 / -1;">
+          <label class="attach-btn">Subir múltiples
+            <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)">
+          </label>
+          <span *ngIf="uploadBusy" class="uploading">Subiendo...</span>
+          <span *ngIf="uploadError" class="error">{{ uploadError }}</span>
+        </div>
+        <div class="grid">
+          <div *ngFor="let img of images" class="grid-item">
+            <img [src]="img.dataUrl" [alt]="img.name">
+            <div class="grid-item-footer">
+              <span class="name" [title]="img.name">{{ img.name }}</span>
+              <button type="button" class="attach-btn danger" (click)="removeImage(img.id)">Eliminar</button>
+            </div>
+          </div>
+          <div *ngIf="images.length === 0" class="attach-empty" style="grid-column: 1 / -1;">No hay imágenes adjuntas</div>
+        </div>
+      </div>
+    
   </div>
 </div>
