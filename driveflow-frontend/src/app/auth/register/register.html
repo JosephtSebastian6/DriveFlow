@@ -14,6 +14,16 @@
           <input id="nombres" type="text" [(ngModel)]="nombres" name="nombres" required>
         </div>
 
+        <!-- Código de empresa (opcional) -->
+        <div class="form-field">
+          <label for="empresa_code">Código de empresa (opcional)</label>
+          <input id="empresa_code" type="text" [(ngModel)]="empresa_code" name="empresa_code" placeholder="Ej: ABC123" (input)="onEmpresaCodeInput()" (blur)="validarCodigoEmpresa()">
+          <small>Si tienes un código de empresa, ingrésalo para quedar asociado automáticamente.</small>
+          <div *ngIf="validandoEmpresa" style="color:#555;margin-top:4px;">Validando código...</div>
+          <div *ngIf="empresaValida === true && empresaNombre" style="color:#2e7d32;margin-top:4px;">Empresa: {{ empresaNombre }}</div>
+          <div *ngIf="empresaValida === false" style="color:#c62828;margin-top:4px;">Código de empresa inválido</div>
+        </div>
+
         <!-- Campo de Apellidos -->
         <div class="form-field">
           <label for="apellidos">Apellidos*</label>
@@ -48,7 +58,7 @@
         </div>
 
         <!-- Botón de Registro -->
-        <button type="submit" class="register-button">Registrar</button>
+        <button type="submit" class="register-button" [disabled]="validandoEmpresa || empresaValida === false">Registrar</button>
       </form>
 
       <!-- Muestra el mensaje del componente aquí, si existe -->

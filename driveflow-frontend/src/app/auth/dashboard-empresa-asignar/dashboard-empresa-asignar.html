@@ -1,28 +1,25 @@
 <div class="asignar-container">
-  <h2>Asignar vehículo a nuevo usuario</h2>
+  <h2>Asignar vehículo a usuario registrado</h2>
   <form (ngSubmit)="crear()" class="form-grid">
     <fieldset>
-      <legend>Datos del usuario</legend>
-      <label>Tipo de usuario</label>
-      <select [(ngModel)]="user.tipo_usuario" name="tipo_usuario">
-        <option value="funcionario">Funcionario</option>
-        <option value="cliente">Cliente</option>
+      <legend>Empresa</legend>
+      <label>Seleccionar empresa</label>
+      <select [(ngModel)]="selectedEmpresaId" name="selectedEmpresaId" (change)="onEmpresaChange($event)">
+        <option value="">-- Selecciona una empresa --</option>
+        <option *ngFor="let e of empresas" [value]="e.id">{{ e.nombre }}</option>
       </select>
+    </fieldset>
 
-      <label>Username</label>
-      <input type="text" [(ngModel)]="user.username" name="username" required />
-
-      <label>Email</label>
-      <input type="email" [(ngModel)]="user.email" name="email" required />
-
-      <label>Nombres</label>
-      <input type="text" [(ngModel)]="user.nombres" name="nombres" />
-
-      <label>Apellidos</label>
-      <input type="text" [(ngModel)]="user.apellidos" name="apellidos" />
-
-      <label>Teléfono</label>
-      <input type="text" [(ngModel)]="user.telefono" name="telefono" />
+    <fieldset>
+      <legend>Usuario</legend>
+      <label>Seleccionar usuario</label>
+      <select [(ngModel)]="selectedUsername" name="selectedUsername" [disabled]="!selectedEmpresaId">
+        <option value="">-- Selecciona un usuario --</option>
+        <option *ngFor="let u of usuarios" [value]="u.username">
+          {{ u.username }} - {{ u.nombres }} {{ u.apellidos }} ({{ u.tipo_usuario }})
+        </option>
+      </select>
+      <div class="note" *ngIf="selectedEmpresaId && !usuarios?.length">No hay usuarios disponibles para esta empresa.</div>
     </fieldset>
 
     <fieldset>
@@ -80,12 +77,12 @@
       </ng-template>
     </fieldset>
 
-    <button class="primary" type="submit" [disabled]="loading">{{ loading ? 'Creando...' : 'Crear y asignar' }}</button>
+    <button class="primary" type="submit" [disabled]="loading || !selectedEmpresaId || !selectedUsername || (!selectedVehiculoId && !vehiculo.placa)">
+      {{ loading ? 'Asignando...' : 'Asignar' }}
+    </button>
   </form>
 
   <div *ngIf="resultMsg" class="result">
     <p>{{ resultMsg }}</p>
-    <p *ngIf="tempPassword"><strong>Contraseña temporal:</strong> <code>{{ tempPassword }}</code></p>
-    <div class="note">Se envió un correo de verificación al usuario. Debe verificarlo antes de poder iniciar sesión.</div>
   </div>
 </div>

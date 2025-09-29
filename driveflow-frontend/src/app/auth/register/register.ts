@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'; // Importa HttpErrorResponse
+import { EmpresasService } from '../services/empresas.service';
 
 import { MatFormFieldModule } from '@angular/material/form-field'; // Para el contenedor del input
 import { MatSelectModule } from '@angular/material/select';
@@ -34,18 +35,48 @@ export class RegisterComponent implements OnInit {
   nombres: string = '';
   apellidos: string = '';
   tipo_usuario: string = 'cliente'; // Valor por defecto
+  // Código de empresa opcional para asociar el usuario durante el registro
+  empresa_code: string = '';
+  empresaNombre?: string;
+  empresaValida: boolean | null = null; // null = sin validar, true válido, false inválido
+  validandoEmpresa = false;
   message: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute, private empresas: EmpresasService) {
     console.log('¡¡DEBUG: RegisterComponent: Constructor llamado!!'); // <-- Añade este log
   }
 
   ngOnInit(): void {
     console.log('¡¡DEBUG: RegisterComponent: ngOnInit llamado!!'); // <-- Añade este log
+    // Prefill de código de empresa si viene por query param, ej: /register?empresa=ABC123
+    this.route.queryParamMap.subscribe((params) => {
+      const code = params.get('empresa') || params.get('empresa_code') || params.get('company') || '';
+      if (code) {
+        this.empresa_code = code;
+        this.validarCodigoEmpresa();
+      }
+    });
+  }
+
+  onEmpresaCodeInput() {
+    // Reiniciamos el estado de validación mientras el usuario escribe
+    if (!this.empresa_code) {
+      this.empresaValida = null;
+      this.empresaNombre = undefined;
+      return;
+    }
+    this.empresaValida = null;
+    this.empresaNombre = undefined;
   }
 
   onSubmit(): void {
     console.log('¡¡DEBUG: RegisterComponent: onSubmit llamado!!'); // <-- Añade este log (al inicio)
+
+    // Si el usuario ingresó un código de empresa, validarlo antes de enviar
+    if (this.empresa_code && this.empresaValida === false) {
+      this.message = 'Código de empresa inválido. Por favor verifica el código.';
+      return;
+    }
 
     const userData = {
       username: this.username,
@@ -53,7 +84,9 @@ export class RegisterComponent implements OnInit {
       password: this.password,
       nombres: this.nombres,
       apellidos: this.apellidos,
-      tipo_usuario: this.tipo_usuario
+      tipo_usuario: this.tipo_usuario,
+      // Enviamos el código de empresa solo si el usuario lo proporcionó
+      ...(this.empresa_code ? { empresa_code: this.empresa_code } : {})
     };
 
     console.log('¡¡DEBUG: Datos de usuario a enviar:', userData);
@@ -79,5 +112,33 @@ export class RegisterComponent implements OnInit {
           this.message = errorMessage;
         }
       });
+  }
+
+  validarCodigoEmpresa() {
+    const code = (this.empresa_code || '').trim();
+    if (!code) {
+      this.empresaValida = null;
+      this.empresaNombre = undefined;
+      return;
+    }
+    this.validandoEmpresa = true;
+    this.empresas.validarCodigo(code).subscribe({
+      next: (res: any) => {
+        // Soportamos dos posibles respuestas: {empresa_id, nombre} o {valid: boolean}
+        if (res && (res.empresa_id || res.valid === true)) {
+          this.empresaValida = true;
+          this.empresaNombre = res.nombre || this.empresaNombre;
+        } else {
+          this.empresaValida = false;
+          this.empresaNombre = undefined;
+        }
+        this.validandoEmpresa = false;
+      },
+      error: () => {
+        this.empresaValida = false;
+        this.empresaNombre = undefined;
+        this.validandoEmpresa = false;
+      }
+    });
   }
 }

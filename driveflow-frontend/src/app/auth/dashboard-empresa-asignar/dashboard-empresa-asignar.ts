@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DashboardEmpresaAsignarService, UserPayload, VehiculoPayload } from './dashboard-empresa-asignar.service';
+import { DashboardEmpresaAsignarService, VehiculoPayload } from './dashboard-empresa-asignar.service';
+import { AdminUsuariosService, UsuarioResumen } from '../dashboard-admin-usuarios/admin-usuarios.service';
+import { EmpresasService, Empresa, UsuarioEmpresaResumen } from '../services/empresas.service';
 
 @Component({
   selector: 'app-dashboard-empresa-asignar',
@@ -11,14 +13,11 @@ import { DashboardEmpresaAsignarService, UserPayload, VehiculoPayload } from './
   templateUrl: './dashboard-empresa-asignar.html'
 })
 export class DashboardEmpresaAsignarComponent {
-  user: UserPayload = {
-    tipo_usuario: 'funcionario',
-    username: '',
-    email: '',
-    nombres: '',
-    apellidos: '',
-    telefono: ''
-  };
+  // Usuarios cargados para seleccionar
+  empresas: Empresa[] = [];
+  selectedEmpresaId: string | number | '' = '';
+  usuarios: (UsuarioResumen | UsuarioEmpresaResumen)[] = [];
+  selectedUsername: string = '';
   vehiculo: VehiculoPayload = {
     marca: '', modelo: '', ano: '', placa: '',
     fecha_soat: '', fecha_tecno: '', color: '', vehiculo_image_url: '', gps_activo: false
@@ -32,7 +31,11 @@ export class DashboardEmpresaAsignarComponent {
   misVehiculos: any[] = [];
   selectedVehiculoId: number | null = null;
 
-  constructor(private service: DashboardEmpresaAsignarService) {
+  constructor(
+    private service: DashboardEmpresaAsignarService,
+    private adminUsuarios: AdminUsuariosService,
+    private empresasService: EmpresasService
+  ) {
     const myUsername = localStorage.getItem('username') || '';
     if (myUsername) {
       this.service.listarMisVehiculos(myUsername).subscribe({
@@ -40,6 +43,12 @@ export class DashboardEmpresaAsignarComponent {
         error: () => this.misVehiculos = []
       });
     }
+
+    // Cargar empresas disponibles para el usuario actual (o todas, según permisos)
+    this.empresasService.listEmpresas().subscribe({
+      next: (lista) => this.empresas = Array.isArray(lista) ? lista : [],
+      error: () => this.empresas = []
+    });
   }
 
   onSelectVehiculoExistente(event: any) {
@@ -62,6 +71,14 @@ export class DashboardEmpresaAsignarComponent {
 
   crear() {
     this.resultMsg = null; this.errorMsg = null; this.tempPassword = null;
+    if (!this.selectedEmpresaId) {
+      this.errorMsg = 'Debes seleccionar una empresa.';
+      return;
+    }
+    if (!this.selectedUsername) {
+      this.errorMsg = 'Debes seleccionar un usuario registrado.';
+      return;
+    }
     // Validaciones: si hay vehículo seleccionado, solo se permite enviar con esos datos (solo lectura)
     if (this.selectedVehiculoId) {
       if (!this.vehiculo.placa) {
@@ -77,16 +94,27 @@ export class DashboardEmpresaAsignarComponent {
     }
 
     this.loading = true;
-    this.service.crearUsuarioVehiculo({ user: this.user, vehiculo: this.vehiculo }).subscribe({
+    this.service.asignarVehiculoAUsuario(this.selectedUsername, this.vehiculo).subscribe({
       next: (res) => {
         this.loading = false;
-        this.tempPassword = res.temp_password || null;
-        this.resultMsg = `Usuario ${res.user.username} creado y vehículo ${res.vehiculo.placa || ''} asignado.`;
+        this.resultMsg = `Vehículo ${res.vehiculo?.placa || ''} asignado a ${this.selectedUsername}.`;
       },
       error: (err) => {
         this.loading = false;
         this.errorMsg = err?.error?.detail || 'No fue posible completar la operación';
       }
+    });
+  }
+
+  onEmpresaChange(event: any) {
+    const empId = event?.target?.value || '';
+    this.selectedEmpresaId = empId;
+    this.selectedUsername = '';
+    this.usuarios = [];
+    if (!empId) return;
+    this.empresasService.listUsuariosDeEmpresa(empId).subscribe({
+      next: (lista) => this.usuarios = Array.isArray(lista) ? lista : [],
+      error: () => this.usuarios = []
     });
   }
 }

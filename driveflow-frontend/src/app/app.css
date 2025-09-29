@@ -77,10 +77,6 @@ button.logout-btn:hover {
   background: #e53935;
   color: #fff;
 }
-  text-decoration: none;
-  /* margin: 0 15px; */ /* Ya no es necesario si usas gap en .nav-links */
-  font-weight: bold;
-}
 
 nav a:hover {
   text-decoration: underline;
