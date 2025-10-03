@@ -1,10 +1,15 @@
 <header>
   <h1>DriveFlow</h1>
   <nav>
-    <div class="nav-links">
-      <a class="linea" [href]="'tel:' + reactionPhone">LÍNEA DE REACCIÓN</a>
+   
+    <div class="nav-right">
+      <button type="button" class="linea" (click)="openReactionConfirm()" title="Abrir confirmación de alerta">LÍNEA DE REACCIÓN</button>
       <ng-container *ngIf="!isLoggedIn">
-        <a routerLink="/login">Login</a>
+        <div class="nav-left">
+          <a routerLink="/home">Inicio</a>
+          <a routerLink="/servicios">Servicios</a>
+        </div>
+        <a routerLink="/login">Iniciar Sesión</a>
         <span> | </span>
         <a routerLink="/register">Registrarse</a>
       </ng-container>
@@ -16,3 +21,22 @@
 </header>
 
 <router-outlet></router-outlet>
+
+<!-- Modal confirmación Línea de Reacción -->
+<div *ngIf="reactionConfirmOpen" class="app-modal-backdrop" (click)="closeReactionConfirm()">
+  <div class="app-modal" (click)="$event.stopPropagation()">
+    <div class="app-modal-header">
+      <h3>Confirmar acción</h3>
+      <button class="app-close" (click)="closeReactionConfirm()">×</button>
+    </div>
+    <div class="app-modal-body">
+      <p>¿Qué deseas hacer?</p>
+      <textarea [(ngModel)]="reactionMessage" placeholder="Mensaje opcional para la alerta" rows="3"></textarea>
+    </div>
+    <div class="app-modal-footer">
+      <button class="btn-secondary" (click)="sendAlertOnly()">Solo enviar alerta</button>
+      <button class="btn-primary" (click)="sendAlertAndCall()">Enviar y llamar</button>
+      <button class="btn-ghost" (click)="closeReactionConfirm()">Cancelar</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="servicios-container">
+  <section class="hero">
+    <h2>Servicios DriveFlow</h2>
+    <p>Protegemos tu vehículo con tecnología, respuesta y soporte profesional.</p>
+  </section>
+
+  <section class="plans">
+    <h3 class="plans-title">Planes</h3>
+    <div class="plans-grid">
+      <div class="plan-card" *ngFor="let p of planes">
+        <div class="plan-name">{{ p.nombre }}</div>
+        <div class="plan-price">
+          <span class="amount">{{ price(p) | currency:'COP':'symbol' }}</span>
+          <span class="period">/ {{ p.periodicidad }}</span>
+        </div>
+        <ul class="plan-features">
+          <li *ngFor="let f of p.features">{{ f }}</li>
+        </ul>
+        <button type="button" class="plan-cta" (click)="seleccionarPlan(p.id)">Elegir {{ p.nombre }}</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <a routerLink="/register" class="cta-btn">Comenzar ahora</a>
+  </section>
+</div>

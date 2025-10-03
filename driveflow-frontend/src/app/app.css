@@ -21,15 +21,13 @@ header h1 {
 nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-top: 0;
-  padding-right: 50px;
+  padding: 0 12px 0 0;
 }
 
-.nav-links {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
+.nav-left, .nav-right { display: flex; align-items: center; gap: 15px; }
+.nav-right { margin-right: 24px; }
 
 nav a {
   color: white;
@@ -93,9 +91,93 @@ nav a:hover {
 
 }
 
+/* Estilos globales existentes... */
 
-/* ELIMINA ESTA REGLA: */
-/* .register-link {
-  margin-left: auto;
-} */
+/* ===== Modal confirmación Línea de Reacción ===== */
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
 
+.app-modal {
+  width: min(92vw, 520px);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
+
+.app-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.app-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.app-modal-body { padding: 14px; }
+.app-modal-body p { margin: 0 0 8px; color: #333; font-weight: 600; }
+.app-modal-body textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.app-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+}
+
+.btn-primary {
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-secondary {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-ghost {
+  background: transparent;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Botón de cabecera */
+header .nav-links .linea {
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}

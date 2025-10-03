@@ -1,14 +1,12 @@
 
 
 # Imports
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from Clever_MySQL_conn import Base
 from datetime import datetime, timedelta
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+# Usamos el Base provisto por Clever_MySQL_conn (engine/metadata compartidos)
 
 
 # Vehiculo model
@@ -26,6 +24,26 @@ class Vehiculo(Base):
     color = Column(String(30), nullable=True)
     vehiculo_image_url = Column(String(300), nullable=True)
     gps_activo = Column(Boolean, default=False)
+
+
+# Tabla para gestionar códigos de invitación por empresa
+class EmpresaCodigo(Base):
+    __tablename__ = "empresa_codigo"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # Relaciona con el usuario de tipo 'empresa'
+    empresa_id = Column(Integer, ForeignKey("registro.identificador"), nullable=False, index=True)
+    codigo = Column(String(64), unique=True, index=True, nullable=False)
+    expira_en = Column(DateTime, nullable=True)
+    revocado = Column(Boolean, default=False, nullable=False)
+    generado_en = Column(DateTime, default=datetime.utcnow)
+    generado_por = Column(String(255), nullable=True)  # username del emisor
+
+class EmpresaUsuario(Base):
+    __tablename__ = "empresa_usuario"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    empresa_id = Column(Integer, ForeignKey("registro.identificador"), nullable=False, index=True)
+    usuario_id = Column(Integer, ForeignKey("registro.identificador"), nullable=False, index=True)
+    creado_en = Column(DateTime, default=datetime.utcnow)
 
 class Registro(Base):
     __tablename__ = "registro"

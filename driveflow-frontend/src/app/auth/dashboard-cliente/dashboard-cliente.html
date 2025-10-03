@@ -1,6 +1,18 @@
 <ng-container *ngIf="selected === 'perfil'" class="dashboard-cliente">
   <div class="dashboard-cliente">
     <h2 class="titulo-seccion">Mi Perfil</h2>
+    <div *ngIf="perfil.empresa_id_asociada" class="empresa-banner" style="background:#e8f5e9;border:1px solid #c8e6c9;color:#1b5e20;padding:10px 12px;border-radius:8px;margin-bottom:12px;">
+      Asociado a la empresa: <strong>{{ perfil.empresa_nombre_asociada || ('ID ' + perfil.empresa_id_asociada) }}</strong>
+    </div>
+    <div *ngIf="!perfil.empresa_id_asociada" class="empresa-banner" style="background:#fff3e0;border:1px solid #ffe0b2;color:#e65100;padding:10px 12px;border-radius:8px;margin-bottom:12px;">
+      ¿Tienes un código de empresa? Asóciate aquí:
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+        <input type="text" [(ngModel)]="empresa_code_input" name="empresa_code_input" placeholder="Código de empresa" style="padding:6px 10px;">
+        <button type="button" (click)="asociarEmpresa()" style="padding:6px 12px;background:#d32f2f;color:#fff;border:none;border-radius:6px;cursor:pointer;">Asociar</button>
+      </div>
+      <div *ngIf="asociar_msg" style="margin-top:6px; color:#2e7d32;">{{ asociar_msg }}</div>
+      <div *ngIf="asociar_err" style="margin-top:6px; color:#c62828;">{{ asociar_err }}</div>
+    </div>
     <div class="profile-container">
     <form class="perfil-form" (ngSubmit)="onSubmit()">
       <div class="form-row">

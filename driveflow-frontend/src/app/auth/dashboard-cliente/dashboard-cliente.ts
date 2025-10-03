@@ -30,7 +30,10 @@ export class DashboardClienteComponent implements OnInit {
     // Soporte PIME
     tipo_usuario: '',
     rut: '',
-    camara_comercio: ''
+    camara_comercio: '',
+    // Asociación a empresa (si aplica)
+    empresa_id_asociada: null as number | null,
+    empresa_nombre_asociada: ''
   };
   vehiculo = {
     marca: '',
@@ -44,6 +47,9 @@ export class DashboardClienteComponent implements OnInit {
   };
   mensajeExito = '';
   mensajeVehiculo = '';
+  empresa_code_input: string = '';
+  asociar_msg: string = '';
+  asociar_err: string = '';
 
   constructor(private dashboardClienteService: DashboardClienteService) {}
 
@@ -120,6 +126,33 @@ export class DashboardClienteComponent implements OnInit {
     const fecha = new Date(this.vehiculo.fecha_tecno);
     fecha.setFullYear(fecha.getFullYear() + 1);
     return fecha.toLocaleDateString();
+  }
+
+  asociarEmpresa() {
+    const username = localStorage.getItem('username') || this.perfil.username;
+    const code = (this.empresa_code_input || '').trim();
+    if (!username || !code) {
+      this.asociar_err = 'Debes ingresar el código de empresa';
+      this.asociar_msg = '';
+      return;
+    }
+    this.asociar_err = '';
+    this.asociar_msg = '';
+    this.dashboardClienteService.asociarEmpresa(username, code).subscribe({
+      next: (res) => {
+        this.asociar_msg = 'Asociación exitosa';
+        // Refrescar perfil para mostrar empresa asociada
+        this.dashboardClienteService.getPerfil(username).subscribe((data: any) => {
+          this.perfil = { ...this.perfil, ...data };
+        });
+        setTimeout(() => this.asociar_msg = '', 3000);
+      },
+      error: (err) => {
+        const detail = err?.error?.detail || 'No se pudo asociar a la empresa';
+        this.asociar_err = detail;
+        setTimeout(() => this.asociar_err = '', 4000);
+      }
+    });
   }
 }
 

@@ -33,14 +33,46 @@
   </div>
 
   <footer class="home-footer">
-    <p>&copy; 2023 DriveFlow. Todos los derechos reservados.</p>
+    <div class="footer-inner">
+      <div class="col brand">
+        <div class="logo">DriveFlow</div>
+        <p class="tagline">Recupera tu vehículo. Rastrea y protege con tecnología de punta.</p>
+        <div class="social">
+          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook">
+            <span class="material-icons">facebook</span>
+          </a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+            <span class="material-icons">photo_camera</span>
+          </a>
+          <a href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X (antes Twitter)" title="X (antes Twitter)">
+            <span class="material-icons">alternate_email</span>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube">
+            <span class="material-icons">play_circle_filled</span>
+          </a>
+        </div>
+      </div>
+      <div class="col contact">
+        <h4>Contacto</h4>
+        <p><span class="material-icons">email</span> soporte@driveflow.io</p>
+        <p><span class="material-icons">call</span> +57 300 000 0000</p>
+        <p><span class="material-icons">schedule</span> Soporte 24/7</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; {{ currentYear }} DriveFlow. Todos los derechos reservados.</span>
+      <span class="sep">·</span>
+      <a href="#">Términos</a>
+      <span class="sep">·</span>
+      <a href="#">Privacidad</a>
+    </div>
   </footer>
 
   <!-- Botón flotante de WhatsApp -->
   <a class="whatsapp-float" [href]="whatsappLink()" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
-      <path fill="#fff" d="M19.11 17.38c-.27-.14-1.57-.77-1.81-.86-.24-.09-.41-.14-.58.14-.17.27-.66.86-.81 1.04-.15.18-.3.2-.56.07-.27-.14-1.12-.41-2.14-1.31-.79-.7-1.32-1.56-1.48-1.82-.15-.27-.02-.41.12-.54.12-.12.27-.31.41-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.47-.07-.14-.58-1.39-.8-1.9-.21-.5-.42-.43-.58-.43-.15 0-.34-.02-.52-.02-.18 0-.47.07-.72.34-.24.27-.94.92-.94 2.24s.96 2.6 1.09 2.77c.14.18 1.88 2.86 4.55 4 .64.28 1.14.45 1.53.57.64.2 1.22.17 1.68.1.51-.08 1.57-.64 1.79-1.26.22-.63.22-1.17.15-1.26-.06-.09-.24-.15-.5-.28z"/>
-      <path fill="#25D366" d="M16 3C9.372 3 4 8.372 4 15c0 2.098.565 4.06 1.547 5.75L4 29l8.406-1.523C14.06 28.435 15.902 29 18 29c6.628 0 12-5.372 12-12S24.628 3 18 3zm0 22c-1.902 0-3.676-.553-5.156-1.516l-.37-.234L7.5 24.5l1.25-2.813-.242-.383C7.553 19.824 7 18.05 7 16 7 10.925 11.373 7 16.5 7S26 10.925 26 16s-4.925 9-10 9z"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="28" height="28" aria-hidden="true" focusable="false" role="img">
+      <circle cx="128" cy="128" r="110" fill="#25D366"/>
+      <path fill="#fff" d="M92 72c-4 0-12 2-18 10-5 7-8 16-8 28 0 12 4 22 12 34 9 12 23 24 43 33 21 10 30 9 36 8 6-1 17-7 20-14 3-6 3-12 2-14-1-2-6-4-11-6-6-3-10-4-13 1-3 5-8 12-10 13-2 2-4 2-8 1-4-2-17-6-31-18-12-11-19-23-21-26-2-4 0-6 2-8s4-5 6-7 2-4 3-7c1-3 0-5 0-7-1-2-8-19-10-23-3-5-5-5-7-5z"/>
     </svg>
   </a>
 </div>

@@ -25,6 +25,7 @@ export class HomeComponent implements OnInit {
   whatsappPhone = '573153164146';
   // Mensaje inicial que se abrirá en WhatsApp.
   whatsappMessage = 'Hola, necesito asistencia inmediata para mi vehículo.';
+  currentYear: number = new Date().getFullYear();
 
   constructor() { }
 

@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardEmpresaAsignarService, VehiculoPayload } from './dashboard-empresa-asignar.service';
 import { AdminUsuariosService, UsuarioResumen } from '../dashboard-admin-usuarios/admin-usuarios.service';
 import { EmpresasService, Empresa, UsuarioEmpresaResumen } from '../services/empresas.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard-empresa-asignar',
@@ -12,10 +13,9 @@ import { EmpresasService, Empresa, UsuarioEmpresaResumen } from '../services/emp
   styleUrls: ['./dashboard-empresa-asignar.css'],
   templateUrl: './dashboard-empresa-asignar.html'
 })
-export class DashboardEmpresaAsignarComponent {
+export class DashboardEmpresaAsignarComponent implements OnInit {
   // Usuarios cargados para seleccionar
-  empresas: Empresa[] = [];
-  selectedEmpresaId: string | number | '' = '';
+  selectedEmpresaId: string = '';
   usuarios: (UsuarioResumen | UsuarioEmpresaResumen)[] = [];
   selectedUsername: string = '';
   vehiculo: VehiculoPayload = {
@@ -34,7 +34,8 @@ export class DashboardEmpresaAsignarComponent {
   constructor(
     private service: DashboardEmpresaAsignarService,
     private adminUsuarios: AdminUsuariosService,
-    private empresasService: EmpresasService
+    private empresasService: EmpresasService,
+    private http: HttpClient
   ) {
     const myUsername = localStorage.getItem('username') || '';
     if (myUsername) {
@@ -44,11 +45,35 @@ export class DashboardEmpresaAsignarComponent {
       });
     }
 
-    // Cargar empresas disponibles para el usuario actual (o todas, según permisos)
-    this.empresasService.listEmpresas().subscribe({
-      next: (lista) => this.empresas = Array.isArray(lista) ? lista : [],
-      error: () => this.empresas = []
-    });
+    // Resolver empresa del usuario actual y cargar usuarios asociados
+    const cached = localStorage.getItem('empresa_id');
+    if (cached) {
+      this.selectedEmpresaId = cached;
+      this.cargarUsuariosDeEmpresa();
+    } else if (myUsername) {
+      this.http.get<any>(`http://localhost:8000/auth/perfil/${myUsername}`).subscribe({
+        next: (perfil) => {
+          const id = perfil?.identificador;
+          if (id) {
+            this.selectedEmpresaId = String(id);
+            localStorage.setItem('empresa_id', this.selectedEmpresaId);
+            this.cargarUsuariosDeEmpresa();
+          }
+        },
+        error: () => {}
+      });
+    }
+  }
+
+  ngOnInit(): void {
+    // Doble verificación por si el constructor no alcanzó a resolver antes del render
+    const cached = localStorage.getItem('empresa_id');
+    if (!this.selectedEmpresaId && cached) {
+      this.selectedEmpresaId = cached;
+    }
+    if (this.selectedEmpresaId && (!this.usuarios || this.usuarios.length === 0)) {
+      this.cargarUsuariosDeEmpresa();
+    }
   }
 
   onSelectVehiculoExistente(event: any) {
@@ -71,10 +96,6 @@ export class DashboardEmpresaAsignarComponent {
 
   crear() {
     this.resultMsg = null; this.errorMsg = null; this.tempPassword = null;
-    if (!this.selectedEmpresaId) {
-      this.errorMsg = 'Debes seleccionar una empresa.';
-      return;
-    }
     if (!this.selectedUsername) {
       this.errorMsg = 'Debes seleccionar un usuario registrado.';
       return;
@@ -94,10 +115,11 @@ export class DashboardEmpresaAsignarComponent {
     }
 
     this.loading = true;
-    this.service.asignarVehiculoAUsuario(this.selectedUsername, this.vehiculo).subscribe({
+    const empresaId = this.selectedEmpresaId || localStorage.getItem('empresa_id') || undefined;
+    this.service.asignarVehiculoAUsuario(this.selectedUsername, this.vehiculo, empresaId).subscribe({
       next: (res) => {
         this.loading = false;
-        this.resultMsg = `Vehículo ${res.vehiculo?.placa || ''} asignado a ${this.selectedUsername}.`;
+        this.resultMsg = `Vehículo ${res.vehiculo?.placa || ''} asignado a ${this.selectedUsername}. El usuario lo verá en su panel "Mi Vehículo" al ingresar o recargar.`;
       },
       error: (err) => {
         this.loading = false;
@@ -106,15 +128,17 @@ export class DashboardEmpresaAsignarComponent {
     });
   }
 
-  onEmpresaChange(event: any) {
-    const empId = event?.target?.value || '';
-    this.selectedEmpresaId = empId;
+  private cargarUsuariosDeEmpresa() {
+    if (!this.selectedEmpresaId) return;
     this.selectedUsername = '';
     this.usuarios = [];
-    if (!empId) return;
-    this.empresasService.listUsuariosDeEmpresa(empId).subscribe({
+    this.empresasService.listUsuariosDeEmpresa(this.selectedEmpresaId).subscribe({
       next: (lista) => this.usuarios = Array.isArray(lista) ? lista : [],
       error: () => this.usuarios = []
     });
+  }
+
+  refreshUsuarios() {
+    this.cargarUsuariosDeEmpresa();
   }
 }

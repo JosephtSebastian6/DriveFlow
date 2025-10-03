@@ -73,7 +73,7 @@
           <div class="doc-row">
             <div class="doc-label">SOAT</div>
             <div class="doc-preview" *ngIf="soatImage; else soatEmpty">
-              <img [src]="soatImage?.dataUrl" [alt]="soatImage?.name">
+              <img [src]="soatImage?.dataUrl" [alt]="soatImage?.name" (click)="openPreview(soatImage!.dataUrl, soatImage!.name)">
             </div>
             <ng-template #soatEmpty><div class="attach-empty">Sin archivo</div></ng-template>
             <div class="doc-controls">
@@ -84,7 +84,7 @@
           <div class="doc-row">
             <div class="doc-label">Tecnomecánica</div>
             <div class="doc-preview" *ngIf="tecnoImage; else tecnoEmpty">
-              <img [src]="tecnoImage?.dataUrl" [alt]="tecnoImage?.name">
+              <img [src]="tecnoImage?.dataUrl" [alt]="tecnoImage?.name" (click)="openPreview(tecnoImage!.dataUrl, tecnoImage!.name)">
             </div>
             <ng-template #tecnoEmpty><div class="attach-empty">Sin archivo</div></ng-template>
             <div class="doc-controls">
@@ -95,7 +95,7 @@
           <div class="doc-row">
             <div class="doc-label">Licencia</div>
             <div class="doc-preview" *ngIf="licenciaImage; else licenciaEmpty">
-              <img [src]="licenciaImage?.dataUrl" [alt]="licenciaImage?.name">
+              <img [src]="licenciaImage?.dataUrl" [alt]="licenciaImage?.name" (click)="openPreview(licenciaImage!.dataUrl, licenciaImage!.name)">
             </div>
             <ng-template #licenciaEmpty><div class="attach-empty">Sin archivo</div></ng-template>
             <div class="doc-controls">
@@ -125,7 +125,7 @@
         </div>
         <div class="grid">
           <div *ngFor="let img of images" class="grid-item">
-            <img [src]="img.dataUrl" [alt]="img.name">
+            <img [src]="img.dataUrl" [alt]="img.name" (click)="openPreview(img.dataUrl, img.name)">
             <div class="grid-item-footer">
               <span class="name" [title]="img.name">{{ img.name }}</span>
               <button type="button" class="attach-btn danger" (click)="removeImage(img.id)">Eliminar</button>
@@ -137,3 +137,16 @@
     
   </div>
 </div>
+
+<!-- Modal de previsualización -->
+<div *ngIf="preview" class="modal-backdrop" (click)="closePreview()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="title">{{ preview?.name || 'Vista previa' }}</span>
+      <button type="button" class="close-btn" (click)="closePreview()">×</button>
+    </div>
+    <div class="modal-body">
+      <img [src]="preview!.src" alt="preview">
+    </div>
+  </div>
+  </div>

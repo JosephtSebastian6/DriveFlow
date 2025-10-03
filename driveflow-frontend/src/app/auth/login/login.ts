@@ -50,7 +50,8 @@ export class LoginComponent {
           } else if (response.tipo_usuario === 'empresa') {
             this.router.navigate(['/dashboard-empresa']);
           } else if (response.tipo_usuario === 'funcionario') {
-            this.router.navigate(['/dashboard-funcionario']);
+            // Ir al dashboard de Mi Perfil reutilizando la vista de cliente
+            this.router.navigate(['/dashboard-cliente']);
           } else {
             this.router.navigate(['/dashboard']); // Fallback
           }

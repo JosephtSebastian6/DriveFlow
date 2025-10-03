@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardClienteService } from '../dashboard-cliente/dashboard-cliente.service';
@@ -10,7 +10,7 @@ import { DashboardClienteService } from '../dashboard-cliente/dashboard-cliente.
   templateUrl: './dashboard-mi-vehiculo.html',
   styleUrls: ['./dashboard-mi-vehiculo.css']
 })
-export class DashboardMiVehiculoComponent implements OnInit {
+export class DashboardMiVehiculoComponent implements OnInit, OnDestroy {
   // Formulario del vehículo actualmente seleccionado/edición
   vehiculo = {
     marca: '',
@@ -23,6 +23,9 @@ export class DashboardMiVehiculoComponent implements OnInit {
     vehiculo_image_url: ''
   };
   mensajeVehiculo = '';
+  // Validación de fechas
+  soatError: string | null = null;
+  tecnoError: string | null = null;
 
   // Estado para múltiples vehículos
   vehiculos: any[] = [];
@@ -37,6 +40,12 @@ export class DashboardMiVehiculoComponent implements OnInit {
   soatImage: { name: string; dataUrl: string; createdAt: number } | null = null;
   tecnoImage: { name: string; dataUrl: string; createdAt: number } | null = null;
   licenciaImage: { name: string; dataUrl: string; createdAt: number } | null = null;
+
+  // Modal de previsualización
+  preview: { src: string; name?: string } | null = null;
+
+  // Polling para detectar asignaciones nuevas
+  private pollHandle: any = null;
 
   constructor(private dashboardClienteService: DashboardClienteService) {}
 
@@ -71,6 +80,49 @@ export class DashboardMiVehiculoComponent implements OnInit {
         });
       }
     });
+
+    // Iniciar polling de asignaciones nuevas (cada 20s)
+    this.startPolling();
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollHandle) {
+      clearInterval(this.pollHandle);
+      this.pollHandle = null;
+    }
+  }
+
+  private startPolling() {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    if (this.pollHandle) clearInterval(this.pollHandle);
+    this.pollHandle = setInterval(() => {
+      this.dashboardClienteService.listarVehiculos(username).subscribe({
+        next: (lista: any[]) => {
+          const nueva = Array.isArray(lista) ? lista : [];
+          if (!this.areVehiculoListsEqual(this.vehiculos, nueva)) {
+            this.vehiculos = nueva;
+            // Si selección actual ya no existe o no había selección, escoger el primero
+            const exists = this.vehiculoSeleccionadoId != null && this.vehiculos.some(v => v.id === this.vehiculoSeleccionadoId);
+            const nextId = exists ? this.vehiculoSeleccionadoId! : (this.vehiculos[0]?.id ?? null);
+            if (nextId != null) {
+              this.seleccionarVehiculo(nextId);
+            } else {
+              // Sin vehículos: mantener formulario vacío
+              this.nuevoVehiculo();
+            }
+          }
+        },
+        error: () => {}
+      });
+    }, 20000);
+  }
+
+  private areVehiculoListsEqual(a: any[], b: any[]): boolean {
+    if (a.length !== b.length) return false;
+    const ak = [...a].map(x => `${x.id}|${x.placa}|${x.modelo}|${x.color}`).sort().join('||');
+    const bk = [...b].map(x => `${x.id}|${x.placa}|${x.modelo}|${x.color}`).sort().join('||');
+    return ak === bk;
   }
 
   // ====== Adjuntos: almacenamiento en localStorage ======
@@ -191,10 +243,35 @@ export class DashboardMiVehiculoComponent implements OnInit {
     this.persistImages();
   }
 
+  // ====== Modal Preview ======
+  openPreview(src: string, name?: string) {
+    if (!src) return;
+    this.preview = { src, name };
+    // Evitar scroll del body mientras el modal está abierto (opcional)
+    try { document.body.style.overflow = 'hidden'; } catch {}
+  }
+
+  closePreview() {
+    this.preview = null;
+    try { document.body.style.overflow = ''; } catch {}
+  }
+
   onSubmitVehiculo() {
     const username = localStorage.getItem('username');
     if (!username) return;
-    const data = { ...this.vehiculo };
+    // Normalizar fechas: interpretar como fecha de emisión y guardar en ISO YYYY-MM-DD
+    const data = { ...this.vehiculo } as any;
+    const soatParsed = this.parseDateFlexible(this.vehiculo.fecha_soat);
+    const tecnoParsed = this.parseDateFlexible(this.vehiculo.fecha_tecno);
+    this.soatError = this.vehiculo.fecha_soat && !soatParsed ? 'Fecha SOAT inválida' : null;
+    this.tecnoError = this.vehiculo.fecha_tecno && !tecnoParsed ? 'Fecha Tecnomecánica inválida' : null;
+    if (this.soatError || this.tecnoError) {
+      this.mensajeVehiculo = 'Corrige las fechas antes de guardar.';
+      setTimeout(() => this.mensajeVehiculo = '', 3000);
+      return;
+    }
+    if (soatParsed) data.fecha_soat = this.formatISO(soatParsed);
+    if (tecnoParsed) data.fecha_tecno = this.formatISO(tecnoParsed);
     const obs = this.vehiculoSeleccionadoId != null
       ? this.dashboardClienteService.actualizarVehiculo(this.vehiculoSeleccionadoId, data)
       : this.dashboardClienteService.crearVehiculo(username, data);
@@ -213,16 +290,20 @@ export class DashboardMiVehiculoComponent implements OnInit {
 
   getSoatVenceEn(): string {
     if (!this.vehiculo.fecha_soat) return '';
-    const fecha = new Date(this.vehiculo.fecha_soat);
-    fecha.setFullYear(fecha.getFullYear() + 1);
-    return fecha.toLocaleDateString();
+    const base = this.parseDateFlexible(this.vehiculo.fecha_soat);
+    if (!base) { this.soatError = 'Fecha SOAT inválida'; return ''; }
+    this.soatError = null;
+    const expiry = this.addOneYear(base);
+    return expiry.toLocaleDateString();
   }
 
   getTecnoVenceEn(): string {
     if (!this.vehiculo.fecha_tecno) return '';
-    const fecha = new Date(this.vehiculo.fecha_tecno);
-    fecha.setFullYear(fecha.getFullYear() + 1);
-    return fecha.toLocaleDateString();
+    const base = this.parseDateFlexible(this.vehiculo.fecha_tecno);
+    if (!base) { this.tecnoError = 'Fecha Tecnomecánica inválida'; return ''; }
+    this.tecnoError = null;
+    const expiry = this.addOneYear(base);
+    return expiry.toLocaleDateString();
   }
 
   seleccionarVehiculo(id: number) {
@@ -272,5 +353,41 @@ export class DashboardMiVehiculoComponent implements OnInit {
       color: v.color || '',
       vehiculo_image_url: v.vehiculo_image_url || ''
     };
+  }
+
+  // ==== Helpers de fechas ====
+  private parseDateFlexible(value: any): Date | null {
+    if (!value) return null;
+    if (value instanceof Date && !isNaN(value.getTime())) return value;
+    const s = value.toString().trim();
+    const iso = /^\d{4}-\d{2}-\d{2}$/;
+    if (iso.test(s)) {
+      const d = new Date(s + 'T00:00:00');
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const m = s.match(dmy);
+    if (m) {
+      const day = parseInt(m[1], 10);
+      const mon = parseInt(m[2], 10) - 1;
+      const year = parseInt(m[3], 10);
+      const d = new Date(year, mon, day);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  private addOneYear(d: Date): Date {
+    const y = d.getFullYear() + 1;
+    const m = d.getMonth();
+    const day = d.getDate();
+    const cand = new Date(y, m, day);
+    if (cand.getMonth() !== m) return new Date(y, m + 1, 0);
+    return cand;
+  }
+
+  private formatISO(d: Date): string {
+    return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
   }
 }

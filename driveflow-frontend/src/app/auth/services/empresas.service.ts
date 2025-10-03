@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from, EMPTY } from 'rxjs';
+import { catchError, concatMap, take } from 'rxjs/operators';
 
 export interface Empresa {
   id: number | string;
@@ -38,16 +39,43 @@ export class EmpresasService {
 
   // Gestión del código de empresa
   getCodigo(empresaId: number | string): Observable<{ codigo?: string; expira_en?: string; revocado?: boolean }> {
-    return this.http.get<{ codigo?: string; expira_en?: string; revocado?: boolean }>(`${this.baseUrl}/empresas/${empresaId}/codigo`);
+    const urls = [
+      `${this.baseUrl}/empresas/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo-invitacion`,
+      `${this.baseUrl}/empresas/${empresaId}/codigo-invitacion`
+    ];
+    return from(urls).pipe(
+      concatMap((url) => this.http.get<{ codigo?: string; expira_en?: string; revocado?: boolean }>(url).pipe(catchError(() => EMPTY))),
+      take(1)
+    );
   }
 
   rotarCodigo(empresaId: number | string, expiresInDays?: number): Observable<{ codigo: string; expira_en?: string }> {
     const body: any = {};
     if (expiresInDays !== undefined) body.expires_in_days = expiresInDays;
-    return this.http.post<{ codigo: string; expira_en?: string }>(`${this.baseUrl}/empresas/${empresaId}/codigo`, body);
+    const urls = [
+      `${this.baseUrl}/empresas/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo-invitacion`,
+      `${this.baseUrl}/empresas/${empresaId}/codigo-invitacion`
+    ];
+    return from(urls).pipe(
+      concatMap((url) => this.http.post<{ codigo: string; expira_en?: string }>(url, body).pipe(catchError(() => EMPTY))),
+      take(1)
+    );
   }
 
   revocarCodigo(empresaId: number | string) {
-    return this.http.delete(`${this.baseUrl}/empresas/${empresaId}/codigo`);
+    const urls = [
+      `${this.baseUrl}/empresas/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo`,
+      `${this.baseUrl}/empresa/${empresaId}/codigo-invitacion`,
+      `${this.baseUrl}/empresas/${empresaId}/codigo-invitacion`
+    ];
+    return from(urls).pipe(
+      concatMap((url) => this.http.delete(url).pipe(catchError(() => EMPTY))),
+      take(1)
+    );
   }
 }

@@ -11,4 +11,7 @@ export interface PerfilFuncionario {
   direccion?: string;
   telefono?: string;
   profile_image_url?: string;
+  // Asociación a empresa (opcional)
+  empresa_id_asociada?: number | null;
+  empresa_nombre_asociada?: string | null;
 }

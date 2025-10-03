@@ -36,6 +36,12 @@
         </li>
         <!-- Bloques de empresa: también visibles para administrador -->
         <li *ngIf="canSeeEmpresaBlocks()">
+          <a routerLink="/dashboard-empresa" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">business</span>
+            <span class="sidebar-label">Código Empresa</span>
+          </a>
+        </li>
+        <li *ngIf="canSeeEmpresaBlocks()">
           <a routerLink="/dashboard-empresa-clientes" routerLinkActive="active">
             <span class="sidebar-icon material-icons">groups</span>
             <span class="sidebar-label">Clientes</span>
@@ -59,10 +65,31 @@
             <span class="sidebar-label">Asignar Vehículo</span>
           </a>
         </li>
+        <li *ngIf="canSeeEmpresaBlocks()">
+          <a routerLink="/dashboard-empresa-pagos" routerLinkActive="active">
+            <span class="sidebar-icon material-icons">payment</span>
+            <span class="sidebar-label">Pagos y Planes</span>
+          </a>
+        </li>
       </ul>
     </div>
   </aside>
   <main class="main-content">
     <router-outlet></router-outlet>
   </main>
+
+  <!-- Toast de alertas in-app (esquina inferior derecha) -->
+  <div *ngIf="showAlerts" class="alerts-toast">
+    <div class="alerts-header">
+      <strong>Alerta de Línea de Reacción</strong>
+      <button type="button" class="alerts-close" (click)="dismissAlerts()">×</button>
+    </div>
+    <ul class="alerts-list">
+      <li *ngFor="let a of alerts | slice:0:3">
+        <span class="alerts-time">{{ a.ts_ms | date:'short' }}</span>
+        <span class="alerts-text">{{ a.message || 'Línea de Reacción activada' }}</span>
+        <span class="alerts-origin" *ngIf="a.origin"> · {{ a.origin }}</span>
+      </li>
+    </ul>
+  </div>
 </div>

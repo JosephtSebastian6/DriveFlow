@@ -21,13 +21,15 @@ export class DashboardRedirectComponent implements OnInit {
         this.router.navigateByUrl('/dashboard-empresa-clientes');
         break;
       case 'funcionario':
-        this.router.navigateByUrl('/dashboard-gps');
+        // Usar el dashboard de Mi Perfil (cliente) también para funcionarios
+        this.router.navigateByUrl('/dashboard-cliente');
         break;
       case 'cliente':
         this.router.navigateByUrl('/dashboard-cliente');
         break;
       default:
-        this.router.navigateByUrl('/dashboard-gps');
+        // Por defecto llevar a Mi Perfil para evitar pantallas provisionales
+        this.router.navigateByUrl('/dashboard-cliente');
         break;
     }
   }

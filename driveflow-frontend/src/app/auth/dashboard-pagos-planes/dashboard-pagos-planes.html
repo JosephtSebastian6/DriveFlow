@@ -1,0 +1,44 @@
+<div class="pagos-container">
+  <h2>Planes y Pagos</h2>
+  <p>Selecciona el plan que mejor se ajuste a tu empresa y procede al pago.</p>
+
+  <div class="controls">
+    <label>
+      Ciclo:
+      <select [(ngModel)]="ciclo">
+        <option value="mensual">Mensual</option>
+        <option value="anual">Anual (descuento)</option>
+      </select>
+    </label>
+    <label>
+      Moneda:
+      <select [(ngModel)]="currency">
+        <option value="COP">COP</option>
+        <option value="USD">USD</option>
+      </select>
+    </label>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando planes...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div class="cards" *ngIf="!loading && !error">
+    <div *ngFor="let plan of planes" class="card" [class.selected]="selectedPlanId===plan.id" (click)="seleccionar(plan.id)">
+      <div class="card-header">
+        <h3>{{ plan.nombre }}</h3>
+        <div class="price">{{ precio(plan) | currency: (currency==='USD'?'USD':'COP') }}</div>
+      </div>
+      <p class="desc">{{ plan.descripcion }}</p>
+      <ul class="features">
+        <li *ngFor="let f of plan.caracteristicas">{{ f }}</li>
+      </ul>
+      <button type="button" class="select-btn" (click)="seleccionar(plan.id); $event.stopPropagation()">Seleccionar</button>
+    </div>
+  </div>
+
+  <div class="footer" *ngIf="selectedPlanId">
+    <button class="pay-btn" (click)="pagar()">Pagar ahora</button>
+    <span class="result ok" *ngIf="pagoOk">Pago exitoso · Ref: {{ pagoOk.referencia }}</span>
+    <span class="result err" *ngIf="pagoError">{{ pagoError }}</span>
+  </div>
+</div>

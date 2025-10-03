@@ -1,10 +1,10 @@
 .stops-controls {
   position: absolute;
-  top: 118px; /* debajo de la barra principal */
+  top: 136px; /* debajo de la barra principal (bajado 18px) */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 15px;
   align-items: center;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(6px);
@@ -16,7 +16,7 @@
 
 .stops-list {
   position: absolute;
-  top: 166px; /* debajo del bloque de añadir parada */
+  top: 186px; /* debajo del bloque de añadir parada (bajado 20px) */
   left: 50%;
   transform: translateX(-50%);
   display: flex;

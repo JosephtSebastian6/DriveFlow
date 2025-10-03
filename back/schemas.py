@@ -38,6 +38,7 @@ class RegistroCreate(BaseModel):
 
     email: EmailStr 
     tipo_usuario: str  # cliente, funcionario, empresa
+    empresa_code: str | None = None  # Código de invitación de empresa (opcional)
 
 class LoginUsuario(BaseModel):
     username:str

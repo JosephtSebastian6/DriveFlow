@@ -25,6 +25,10 @@ export class DashboardClienteService {
     return this.http.put('http://localhost:8000/auth/vehiculo', vehiculo);
   }
 
+  asociarEmpresa(username: string, empresa_code: string): Observable<any> {
+    return this.http.post(`${this.baseAuthUrl}/empresas/asociar`, { username, empresa_code });
+  }
+
   // ------- NUEVOS MÉTODOS: MULTI-VEHÍCULO -------
   listarVehiculos(username: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseAuthUrl}/usuarios/${username}/vehiculos`);

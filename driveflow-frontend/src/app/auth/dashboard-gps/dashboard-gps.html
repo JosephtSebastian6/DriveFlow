@@ -47,29 +47,20 @@
     </div>
     <div class="side-list-container">
       <div class="side-list-header">
-        <span>Funcionarios ({{filteredAgentes.length}})</span>
+        <span>Buscar vehículo</span>
         <input 
           class="side-list-search" 
           type="text" 
-          placeholder="Buscar por placa o nombre"
+          placeholder="Buscar por placa"
           [(ngModel)]="searchTerm"
-          (input)="onSearch($event)">
+          (keyup.enter)="locateByPlaca()">
       </div>
-      <ul class="side-list">
-        <li *ngFor="let agente of filteredAgentes" class="side-list-item">
-          <span class="side-list-dot" [ngClass]="getStatusColor(agente)" [title]="getStatusTooltip(agente)"></span>
-          <div class="agente-info">
-            <div class="agente-nombre">{{agente.nombre}}</div>
-            <div class="agente-placa">{{agente.placa}}</div>
-          </div>
-        </li>
-        <li *ngIf="filteredAgentes.length === 0" class="side-list-item no-results">
-          No se encontraron funcionarios
-        </li>
-      </ul>
-      <div class="side-list-actions">
-        <button class="side-list-action-btn">Emergencia</button>
-        <button class="side-list-action-btn">Rastrear</button>
+      <div class="side-list-actions" style="justify-content:flex-end; gap:8px;">
+        <button class="side-list-action-btn" (click)="locateByPlaca()">Ubicar</button>
+        <button class="side-list-action-btn" (click)="traceToVehicle()">Trazar ruta</button>
+      </div>
+      <div style="padding:8px 0; color:#666; font-size:12px;">
+        Sugerencia: si no hay posición para la placa, podrás asignarla desde “Ubicar demo”.
       </div>
     </div>
   </div>

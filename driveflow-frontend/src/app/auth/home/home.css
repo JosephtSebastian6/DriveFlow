@@ -121,17 +121,88 @@ p {
 
 /* ¡NUEVOS ESTILOS PARA EL FOOTER LOCAL! */
 .home-footer {
-  text-align: center;
-  padding: 1rem;
-  color: white;
-  font-size: 0.8rem;
   width: 100%;
   z-index: 2;
+  position: relative;
+  color: #eaeaea;
+  text-shadow: none;
+  background: rgba(0,0,0,.38);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(255,255,255,.08);
 }
 
-.home-footer p {
-  color: white;
-  text-shadow: none;
+.home-footer .footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 18px 16px 10px;
+  display: grid;
+  grid-template-columns: 1.2fr .9fr .9fr;
+  gap: 18px;
+}
+
+.home-footer .col h4 { 
+  margin: 0 0 8px; 
+  font-size: 0.95rem; 
+  color: #ffffff; 
+}
+
+.home-footer .brand .logo {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  letter-spacing: .3px;
+}
+.home-footer .brand .tagline { 
+  margin: 6px 0 10px; 
+  font-size: .9rem; 
+  color: #e0e0e0; 
+}
+
+.home-footer .social { display: flex; gap: 10px; }
+.home-footer .social a { 
+  width: 36px; height: 36px; border-radius: 10px; 
+  display: inline-flex; align-items: center; justify-content: center; 
+  background: rgba(255,255,255,.08); color: #fff; text-decoration: none; 
+  transition: transform .2s ease, background .2s ease; 
+}
+.home-footer .social a:hover { transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+.home-footer .links a { 
+  display: block; text-decoration: none; color: #e6e6e6; 
+  padding: 4px 0; font-size: .9rem; 
+}
+.home-footer .links a:hover { color: #ffffff; text-decoration: underline; }
+
+.home-footer .contact p { 
+  margin: 4px 0; display: flex; align-items: center; gap: 8px; 
+  color: #e6e6e6; font-size: .9rem; 
+}
+.home-footer .contact .material-icons { font-size: 18px; color: #d1d1d1; }
+
+.home-footer .footer-bottom {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: #d8d8d8;
+  font-size: .85rem;
+}
+.home-footer .footer-bottom a { color: #ffffff; opacity: .9; text-decoration: none; }
+.home-footer .footer-bottom a:hover { text-decoration: underline; }
+.home-footer .footer-bottom .sep { opacity: .4; }
+
+/* Responsive footer */
+@media (max-width: 820px) {
+  .home-footer .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .home-footer .footer-inner { grid-template-columns: 1fr; }
+  .home-footer .footer-bottom { flex-direction: column; gap: 6px; }
 }
 
 /* Botón flotante de WhatsApp */

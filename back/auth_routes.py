@@ -3,10 +3,12 @@ from Clever_MySQL_conn import get_db
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request, Body
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from jose import jwt
 from datetime import timedelta, datetime
 import uuid
 from pydantic import EmailStr, BaseModel
+import secrets
 from pydantic import EmailStr
 import crud
 import models
@@ -36,7 +38,20 @@ async def get_perfil(username: str, db: Session = Depends(get_db)):
     user = db.query(models.Registro).filter(models.Registro.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    # Buscar asociación a empresa (si existe)
+    empresa_id_asociada = None
+    empresa_nombre_asociada = None
+    try:
+        link = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.usuario_id == user.identificador).first()
+        if link:
+            empresa_id_asociada = link.empresa_id
+            emp = db.query(models.Registro).filter(models.Registro.identificador == link.empresa_id).first()
+            if emp:
+                empresa_nombre_asociada = f"{getattr(emp,'nombres','') or ''} {getattr(emp,'apellidos','') or ''}".strip() or (getattr(emp,'username','') or None)
+    except Exception as e:
+        print(f"WARN perfil: no se pudo resolver empresa asociada: {e}")
     return {
+        "identificador": user.identificador,
         "username": user.username,
         "email": user.email,
         "numero_identificacion": user.numero_identificacion,
@@ -52,6 +67,8 @@ async def get_perfil(username: str, db: Session = Depends(get_db)):
         "tipo_usuario": user.tipo_usuario,
         "rut": getattr(user, 'rut', None),
         "camara_comercio": getattr(user, 'camara_comercio', None),
+        "empresa_id_asociada": empresa_id_asociada,
+        "empresa_nombre_asociada": empresa_nombre_asociada,
     }
 
 @authRouter.get("/vehiculo/{username}")
@@ -86,6 +103,78 @@ async def get_vehiculo(username: str, db: Session = Depends(get_db)):
 async def upsert_vehiculo(vehiculo: dict = Body(...), db: Session = Depends(get_db)):
     result = crud.upsert_vehiculo(db, vehiculo)
     return result
+
+class ReubicarVehiculoIn(BaseModel):
+    username: str
+    placa: str
+    empresa_id: int | None = None
+
+@authRouter.post('/vehiculos/reubicar-a-cliente')
+async def reubicar_vehiculo_a_cliente(body: ReubicarVehiculoIn, db: Session = Depends(get_db)):
+    """Normaliza un vehículo para un cliente:
+    - Si existe en VehiculoFuncionario con esa placa, lo mueve a Vehiculo con el username destino.
+    - Si existe en Vehiculo (placa) con otro username, reasigna ese registro al username destino.
+    - Valida que el username destino exista y sea cliente o pime.
+    - Si se envía empresa_id, verifica que el usuario esté asociado a esa empresa.
+    """
+    user = db.query(models.Registro).filter(func.lower(models.Registro.username) == func.lower(body.username)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail='Usuario destino no encontrado')
+    tipo = (getattr(user, 'tipo_usuario', '') or '').lower()
+    if tipo not in {'cliente', 'pime'}:
+        raise HTTPException(status_code=400, detail='Solo se puede reubicar a usuarios tipo cliente/pime')
+    # Validación de pertenencia a empresa si aplica
+    if body.empresa_id is not None:
+        link = db.query(models.EmpresaUsuario).filter(
+            models.EmpresaUsuario.empresa_id == body.empresa_id,
+            models.EmpresaUsuario.usuario_id == user.identificador
+        ).first()
+        if not link:
+            raise HTTPException(status_code=400, detail='El usuario no pertenece a la empresa indicada')
+
+    placa_norm = (body.placa or '').strip()
+    # 1) ¿Existe en funcionarios?
+    vfun = db.query(models.VehiculoFuncionario).filter(func.lower(models.VehiculoFuncionario.placa) == func.lower(placa_norm)).first()
+    if vfun:
+        # Crear en clientes con mismo contenido pero username destino
+        nuevo = models.Vehiculo(
+            username=user.username,
+            marca=getattr(vfun, 'marca', ''), modelo=getattr(vfun, 'modelo', ''), ano=getattr(vfun, 'ano', ''),
+            placa=getattr(vfun, 'placa', ''), fecha_soat=getattr(vfun, 'fecha_soat', ''), fecha_tecno=getattr(vfun, 'fecha_tecno', ''),
+            color=getattr(vfun, 'color', ''), vehiculo_image_url=getattr(vfun, 'vehiculo_image_url', ''),
+            gps_activo=getattr(vfun, 'gps_activo', False) if hasattr(vfun, 'gps_activo') else False
+        )
+        db.add(nuevo)
+        db.delete(vfun)
+        db.commit()
+        db.refresh(nuevo)
+        return {'moved_from': 'funcionario', 'to': 'cliente', 'placa': nuevo.placa, 'username': user.username}
+
+    # 2) ¿Existe en clientes con otro username? Reasignar
+    vcli = db.query(models.Vehiculo).filter(func.lower(models.Vehiculo.placa) == func.lower(placa_norm)).first()
+    if vcli:
+        setattr(vcli, 'username', user.username)
+        db.commit()
+        db.refresh(vcli)
+        return {'reassigned': True, 'placa': vcli.placa, 'username': user.username}
+
+    raise HTTPException(status_code=404, detail='No se encontró el vehículo por placa en funcionarios o clientes')
+
+ 
+
+# ========================= Empresa: resolver empresa_id por username =========================
+@authRouter.get('/empresa/id-por-username')
+async def empresa_id_por_username(username: str, db: Session = Depends(get_db)):
+    """Devuelve el primer empresa_id asociado al username dado, usando la tabla de enlace EmpresaUsuario.
+    Si no hay vínculo, retorna { empresa_id: None }.
+    """
+    user = db.query(models.Registro).filter(models.Registro.username == username).first()
+    if not user:
+        return { 'empresa_id': None }
+    link = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.usuario_id == getattr(user, 'identificador', None)).first()
+    if not link:
+        return { 'empresa_id': None }
+    return { 'empresa_id': getattr(link, 'empresa_id', None) }
 
 # --- ENDPOINTS MULTI-VEHÍCULO (RUTAS SIN COLISIÓN) ---
 @authRouter.get("/usuarios/{username}/vehiculos")
@@ -135,6 +224,21 @@ async def register(
 
     # Llama a la función CRUD para registrar al usuario, pasando las dependencias necesarias
     new_user = await crud.registro_user(db, user, background_tasks, request)
+    # Asociación por empresa_code si viene en el payload
+    try:
+        code = getattr(user, 'empresa_code', None)
+        if code:
+            row = db.query(models.EmpresaCodigo).filter(models.EmpresaCodigo.codigo == code).first()
+            if not row or bool(row.revocado) or (row.expira_en and row.expira_en < datetime.utcnow()):
+                raise HTTPException(status_code=400, detail='Código de empresa inválido o expirado')
+            # Crear vínculo en empresa_usuario
+            link = models.EmpresaUsuario(empresa_id=row.empresa_id, usuario_id=new_user.identificador)
+            db.add(link)
+            db.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"WARN: No se pudo asociar empresa_code: {e}")
     return new_user
 
 
@@ -291,13 +395,28 @@ async def update_funcionario_perfil(perfil: dict = Body(...), db: Session = Depe
         raise HTTPException(status_code=404, detail="Funcionario no encontrado")
     return updated_funcionario
 
-@authRouter.get("/empresa/clientes")
-async def get_clientes(db: Session = Depends(get_db)):
-    # Obtiene todos los usuarios tipo 'cliente'
-    clientes = db.query(models.Registro).filter(models.Registro.tipo_usuario == "cliente").all()
+# DEPRECATED: usar '/empresa/clientes' (ver versión con incluir_funcionarios, origen y tipo_usuario)
+@authRouter.get("/empresa/clientes-legacy")
+async def get_clientes(empresa_id: int | None = None, db: Session = Depends(get_db)):
+    """Lista clientes asociados a una empresa vía tabla empresa_usuario.
+    Requiere empresa_id. Si no se envía, devuelve 400 para evitar exponer datos globales.
+    """
+    if not empresa_id:
+        raise HTTPException(status_code=400, detail="Debe proporcionar empresa_id")
+
+    # Usuarios clientes asociados a esa empresa por EmpresaUsuario
+    links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+    if not links:
+        return []
+    usuario_ids = [l.usuario_id for l in links]
+
+    clientes = db.query(models.Registro).filter(
+        models.Registro.identificador.in_(usuario_ids),
+        models.Registro.tipo_usuario == "cliente"
+    ).all()
+
     resultado = []
     for cliente in clientes:
-        # Busca el vehículo asociado por username
         vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.username == cliente.username).first()
         resultado.append({
             "nombre": f"{cliente.nombres} {cliente.apellidos}",
@@ -366,20 +485,25 @@ async def admin_bloquear_usuario(username: str, body: BloqueoRequest, db: Sessio
 
 # ---------------- Utilidades de verificación ----------------
 class VerifyByIdentifier(BaseModel):
+    # Esquema genérico para reenvío de verificación: acepta uno u otro
     username: str | None = None
     email: EmailStr | None = None
 
+class AdminMarkVerifiedIn(BaseModel):
+    # Opción C: requerir ambos campos
+    username: str
+    email: EmailStr
+
 @authRouter.post("/admin/mark-verified")
-async def admin_mark_verified(body: VerifyByIdentifier, db: Session = Depends(get_db)):
-    q = None
-    if body.username:
-        q = db.query(models.Registro).filter(models.Registro.username == body.username).first()
-    elif body.email:
-        q = db.query(models.Registro).filter(models.Registro.email == body.email).first()
-    else:
-        raise HTTPException(status_code=400, detail="Proporcione username o email")
+async def admin_mark_verified(body: AdminMarkVerifiedIn, db: Session = Depends(get_db)):
+    # Buscar por username y validar email coincidente
+    q = db.query(models.Registro).filter(models.Registro.username == body.username).first()
     if not q:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    stored_email = (getattr(q, 'email', None) or '').strip().lower()
+    if stored_email and stored_email != body.email.strip().lower():
+        raise HTTPException(status_code=400, detail="El email no coincide con el registrado")
+    # Marcar como verificado
     q.email_verified = True
     q.verification_token = None
     q.token_expires_at = None
@@ -407,6 +531,129 @@ async def resend_verification(body: VerifyByIdentifier, background_tasks: Backgr
     verification_url = base_url_str + f"auth/verify-email?token={verification_token}"
     await crud.send_verification_email(user.email, user.username, verification_url, background_tasks, request)
     return {"message": "Correo de verificación reenviado", "username": user.username}
+
+# ---------------------- Empresa: Código de invitación ----------------------
+class RotarCodigoIn(BaseModel):
+    expires_in_days: int | None = 30
+
+class CodigoOut(BaseModel):
+    codigo: str | None = None
+    expira_en: datetime | None = None
+    revocado: bool = False
+
+class ValidarCodigoOut(BaseModel):
+    empresa_id: int
+    nombre: str
+
+def _gen_codigo(longitud: int = 12) -> str:
+    return secrets.token_urlsafe(12)[:longitud]
+
+@authRouter.get('/empresas/{empresa_id}/codigo', response_model=CodigoOut)
+async def empresa_get_codigo(empresa_id: int, db: Session = Depends(get_db)):
+    # Obtiene el último código no revocado; si no hay, responde vacío
+    code = db.query(models.EmpresaCodigo).filter(models.EmpresaCodigo.empresa_id == empresa_id).order_by(models.EmpresaCodigo.id.desc()).first()
+    if not code:
+        return CodigoOut(codigo=None, expira_en=None, revocado=False)
+    return CodigoOut(codigo=code.codigo, expira_en=code.expira_en, revocado=bool(code.revocado))
+
+@authRouter.post('/empresas/{empresa_id}/codigo', response_model=CodigoOut, status_code=status.HTTP_201_CREATED)
+async def empresa_rotar_codigo(empresa_id: int, body: RotarCodigoIn, db: Session = Depends(get_db)):
+    # Genera un nuevo código para la empresa
+    expira_en = None
+    if body.expires_in_days:
+        expira_en = datetime.utcnow() + timedelta(days=body.expires_in_days)
+    nuevo = models.EmpresaCodigo(
+        empresa_id=empresa_id,
+        codigo=_gen_codigo(12),
+        expira_en=expira_en,
+        revocado=False,
+        generado_en=datetime.utcnow(),
+        generado_por=None
+    )
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+    return CodigoOut(codigo=nuevo.codigo, expira_en=nuevo.expira_en, revocado=False)
+
+@authRouter.delete('/empresas/{empresa_id}/codigo', status_code=status.HTTP_204_NO_CONTENT)
+async def empresa_revocar_codigo(empresa_id: int, db: Session = Depends(get_db)):
+    code = db.query(models.EmpresaCodigo).filter(models.EmpresaCodigo.empresa_id == empresa_id).order_by(models.EmpresaCodigo.id.desc()).first()
+    if not code:
+        raise HTTPException(status_code=404, detail='No hay código para esta empresa')
+    code.revocado = True
+    db.add(code)
+    db.commit()
+    return
+
+@authRouter.get('/empresas/validar-codigo', response_model=ValidarCodigoOut)
+async def empresa_validar_codigo(code: str, db: Session = Depends(get_db)):
+    row = db.query(models.EmpresaCodigo).filter(models.EmpresaCodigo.codigo == code).first()
+    if not row or bool(row.revocado):
+        raise HTTPException(status_code=404, detail='Código inválido')
+    if row.expira_en and row.expira_en < datetime.utcnow():
+        raise HTTPException(status_code=404, detail='Código expirado')
+    # Obtenemos nombre referencial desde registro
+    empresa_reg = db.query(models.Registro).filter(models.Registro.identificador == row.empresa_id).first()
+    nombre = f"{getattr(empresa_reg,'nombres','') or ''} {getattr(empresa_reg,'apellidos','') or ''}".strip() or (getattr(empresa_reg,'username', '') or 'Empresa')
+    return ValidarCodigoOut(empresa_id=row.empresa_id, nombre=nombre)
+
+# Asociar usuario a empresa con empresa_code post-registro
+class AsociarEmpresaIn(BaseModel):
+    username: str
+    empresa_code: str
+
+@authRouter.post('/empresas/asociar')
+async def asociar_usuario_a_empresa(body: AsociarEmpresaIn, db: Session = Depends(get_db)):
+    # Validar usuario
+    user = db.query(models.Registro).filter(models.Registro.username == body.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail='Usuario no encontrado')
+    if (user.tipo_usuario or '').lower() not in {'cliente', 'funcionario'}:
+        raise HTTPException(status_code=400, detail='Solo clientes o funcionarios pueden asociarse a una empresa')
+
+    # Validar código
+    row = db.query(models.EmpresaCodigo).filter(models.EmpresaCodigo.codigo == body.empresa_code).first()
+    if not row or bool(row.revocado) or (row.expira_en and row.expira_en < datetime.utcnow()):
+        raise HTTPException(status_code=400, detail='Código de empresa inválido o expirado')
+
+    # Verificar si ya existe asociación
+    existing = db.query(models.EmpresaUsuario).filter(
+        models.EmpresaUsuario.empresa_id == row.empresa_id,
+        models.EmpresaUsuario.usuario_id == user.identificador
+    ).first()
+    if existing:
+        return {"message": "Ya estás asociado a esta empresa", "empresa_id": row.empresa_id}
+
+    link = models.EmpresaUsuario(empresa_id=row.empresa_id, usuario_id=user.identificador)
+    db.add(link)
+    db.commit()
+    return {"message": "Asociación exitosa", "empresa_id": row.empresa_id}
+
+# Listar usuarios asociados a una empresa (clientes y funcionarios)
+class UsuarioEmpresaResumen(BaseModel):
+    username: str
+    nombres: str | None = None
+    apellidos: str | None = None
+    email: EmailStr | None = None
+    tipo_usuario: str
+
+@authRouter.get('/empresas/{empresa_id}/usuarios')
+async def listar_usuarios_de_empresa(empresa_id: int, db: Session = Depends(get_db)):
+    links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+    if not links:
+        return []
+    usuario_ids = [l.usuario_id for l in links]
+    usuarios = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+    resp = []
+    for u in usuarios:
+        resp.append({
+            'username': u.username,
+            'nombres': getattr(u, 'nombres', None),
+            'apellidos': getattr(u, 'apellidos', None),
+            'email': getattr(u, 'email', None),
+            'tipo_usuario': (u.tipo_usuario or '').lower()
+        })
+    return resp
 
 # ---------------- Empresa/PIME: Crear usuario y asignar vehículo ----------------
 class CrearUsuarioVehiculoPayload(BaseModel):
@@ -500,7 +747,7 @@ async def get_agentes(db: Session = Depends(get_db)):
     return resultado
 
 @authRouter.get("/vehiculos/search")
-async def search_vehiculos(placa: str, db: Session = Depends(get_db)):
+async def search_vehiculos(placa: str, empresa_id: int | None = None, db: Session = Depends(get_db)):
     if not placa:
         return []
     # Búsqueda robusta: insensible a mayúsculas/minúsculas, espacios y guiones
@@ -508,10 +755,26 @@ async def search_vehiculos(placa: str, db: Session = Depends(get_db)):
     term_norm = f"%{raw.replace(' ', '').replace('-', '')}%"
     # Clientes
     placa_norm_cli = func.replace(func.replace(func.lower(models.Vehiculo.placa), ' ', ''), '-', '')
-    vehiculos_cli = db.query(models.Vehiculo).filter(placa_norm_cli.like(func.lower(term_norm))).all()
+    cli_q = db.query(models.Vehiculo).filter(placa_norm_cli.like(func.lower(term_norm)))
     # Funcionarios
     placa_norm_fun = func.replace(func.replace(func.lower(models.VehiculoFuncionario.placa), ' ', ''), '-', '')
-    vehiculos_fun = db.query(models.VehiculoFuncionario).filter(placa_norm_fun.like(func.lower(term_norm))).all()
+    fun_q = db.query(models.VehiculoFuncionario).filter(placa_norm_fun.like(func.lower(term_norm)))
+
+    # Si se provee empresa_id, limitar por usuarios asociados a esa empresa
+    if empresa_id is not None:
+        links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+        usuario_ids = [l.usuario_id for l in links]
+        users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+        usernames = [u.username for u in users if getattr(u, 'username', None)]
+        if usernames:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(usernames))
+            fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(usernames))
+        else:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(["__none__"]))
+            fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(["__none__"]))
+
+    vehiculos_cli = cli_q.all()
+    vehiculos_fun = fun_q.all()
 
     resultado = []
     for v in vehiculos_cli:
@@ -539,6 +802,7 @@ async def search_vehiculos(placa: str, db: Session = Depends(get_db)):
 
 class PlacaRequest(BaseModel):
     placa: str
+    empresa_id: int | None = None
 
 # Alias estables para evitar colisión con '/vehiculos/{username}'
 # Alias semánticos de 'power' para mayor claridad en el front
@@ -546,45 +810,70 @@ class PlacaRequest(BaseModel):
 @authRouter.post("/vehiculos/gps/activar")
 @authRouter.post("/vehiculos/power/encender")
 async def activar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
-    # Comparación tolerante a mayúsculas/minúsculas y espacios
+    # Requerimos empresa_id para asegurar la pertenencia
+    if request.empresa_id is None:
+        raise HTTPException(status_code=400, detail="Debe proporcionar empresa_id")
     placa_norm = (request.placa or "").strip()
+    # Construir conjunto de usernames asociados a la empresa
+    links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == request.empresa_id).all()
+    usuario_ids = [l.usuario_id for l in links]
+    users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+    usernames = {u.username for u in users if getattr(u, 'username', None)}
+    # Buscar en clientes
     vehiculo = db.query(models.Vehiculo).filter(func.lower(models.Vehiculo.placa) == func.lower(placa_norm)).first()
-    if vehiculo:
+    if vehiculo and vehiculo.username in usernames:
         vehiculo.gps_activo = True
         db.commit()
-        return {"message": f"Vehículo encendido con placa {vehiculo.placa}"}
+        return {"message": f"GPS activado para {vehiculo.placa}"}
     # Intentar en funcionarios
     vfun = db.query(models.VehiculoFuncionario).filter(func.lower(models.VehiculoFuncionario.placa) == func.lower(placa_norm)).first()
-    if vfun is not None and hasattr(vfun, 'gps_activo'):
-        setattr(vfun, 'gps_activo', True)
-        db.commit()
-        return {"message": f"Vehículo (funcionario) encendido con placa {vfun.placa}"}
-    raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    if vfun is not None and hasattr(vfun, 'username') and vfun.username in usernames:
+        if hasattr(vfun, 'gps_activo'):
+            setattr(vfun, 'gps_activo', True)
+            db.commit()
+            return {"message": f"GPS activado para (funcionario) {vfun.placa}"}
+    raise HTTPException(status_code=404, detail="Vehículo no pertenece a la empresa")
 
 @authRouter.post("/vehiculos/desactivar-gps")
 @authRouter.post("/vehiculos/gps/desactivar")
 @authRouter.post("/vehiculos/power/apagar")
 async def desactivar_gps(request: PlacaRequest, db: Session = Depends(get_db)):
-    # Comparación tolerante a mayúsculas/minúsculas y espacios
+    if request.empresa_id is None:
+        raise HTTPException(status_code=400, detail="Debe proporcionar empresa_id")
     placa_norm = (request.placa or "").strip()
+    links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == request.empresa_id).all()
+    usuario_ids = [l.usuario_id for l in links]
+    users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+    usernames = {u.username for u in users if getattr(u, 'username', None)}
     vehiculo = db.query(models.Vehiculo).filter(func.lower(models.Vehiculo.placa) == func.lower(placa_norm)).first()
-    if vehiculo:
+    if vehiculo and vehiculo.username in usernames:
         vehiculo.gps_activo = False
         db.commit()
-        return {"message": f"Vehículo apagado con placa {vehiculo.placa}"}
-    # Intentar en funcionarios
+        return {"message": f"GPS desactivado para {vehiculo.placa}"}
     vfun = db.query(models.VehiculoFuncionario).filter(func.lower(models.VehiculoFuncionario.placa) == func.lower(placa_norm)).first()
-    if vfun is not None and hasattr(vfun, 'gps_activo'):
-        setattr(vfun, 'gps_activo', False)
-        db.commit()
-        return {"message": f"Vehículo (funcionario) apagado con placa {vfun.placa}"}
-    raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    if vfun is not None and hasattr(vfun, 'username') and vfun.username in usernames:
+        if hasattr(vfun, 'gps_activo'):
+            setattr(vfun, 'gps_activo', False)
+            db.commit()
+            return {"message": f"GPS desactivado para (funcionario) {vfun.placa}"}
+    raise HTTPException(status_code=404, detail="Vehículo no pertenece a la empresa")
 
 @authRouter.get("/vehiculos/activos")
-async def get_vehiculos_activos(db: Session = Depends(get_db)):
+async def get_vehiculos_activos(empresa_id: int | None = None, db: Session = Depends(get_db)):
     resultado: list[dict] = []
     # Clientes activos
-    cli = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == True, models.Vehiculo.gps_activo == 1)).all()
+    cli_q = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == True, models.Vehiculo.gps_activo == 1))
+    if empresa_id is not None:
+        # limitar por usuarios asociados a la empresa
+        links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+        usuario_ids = [l.usuario_id for l in links]
+        users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+        usernames = [u.username for u in users if getattr(u, 'username', None)]
+        if usernames:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(usernames))
+        else:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(["__none__"]))
+    cli = cli_q.all()
     for v in cli:
         propietario = db.query(models.Registro).filter(models.Registro.username == v.username).first()
         resultado.append({
@@ -597,7 +886,17 @@ async def get_vehiculos_activos(db: Session = Depends(get_db)):
         })
     # Funcionarios activos
     if hasattr(models.VehiculoFuncionario, 'gps_activo'):
-        fun = db.query(models.VehiculoFuncionario).filter(or_(models.VehiculoFuncionario.gps_activo == True, models.VehiculoFuncionario.gps_activo == 1)).all()
+        fun_q = db.query(models.VehiculoFuncionario).filter(or_(models.VehiculoFuncionario.gps_activo == True, models.VehiculoFuncionario.gps_activo == 1))
+        if empresa_id is not None:
+            links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+            usuario_ids = [l.usuario_id for l in links]
+            users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+            usernames = [u.username for u in users if getattr(u, 'username', None)]
+            if usernames:
+                fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(usernames))
+            else:
+                fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(["__none__"]))
+        fun = fun_q.all()
         for v in fun:
             propietario_f = db.query(models.Funcionario).filter(models.Funcionario.username == v.username).first()
             resultado.append({
@@ -611,10 +910,20 @@ async def get_vehiculos_activos(db: Session = Depends(get_db)):
     return resultado
 
 @authRouter.get("/vehiculos/inactivos")
-async def get_vehiculos_inactivos(db: Session = Depends(get_db)):
+async def get_vehiculos_inactivos(empresa_id: int | None = None, db: Session = Depends(get_db)):
     resultado: list[dict] = []
     # Clientes inactivos (False, 0 o NULL)
-    cli = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == False, models.Vehiculo.gps_activo == 0, models.Vehiculo.gps_activo.is_(None))).all()
+    cli_q = db.query(models.Vehiculo).filter(or_(models.Vehiculo.gps_activo == False, models.Vehiculo.gps_activo == 0, models.Vehiculo.gps_activo.is_(None)))
+    if empresa_id is not None:
+        links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+        usuario_ids = [l.usuario_id for l in links]
+        users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+        usernames = [u.username for u in users if getattr(u, 'username', None)]
+        if usernames:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(usernames))
+        else:
+            cli_q = cli_q.filter(models.Vehiculo.username.in_(["__none__"]))
+    cli = cli_q.all()
     for v in cli:
         propietario = db.query(models.Registro).filter(models.Registro.username == v.username).first()
         resultado.append({
@@ -627,7 +936,17 @@ async def get_vehiculos_inactivos(db: Session = Depends(get_db)):
         })
     # Funcionarios inactivos (si existe la columna)
     if hasattr(models.VehiculoFuncionario, 'gps_activo'):
-        fun = db.query(models.VehiculoFuncionario).filter(or_(models.VehiculoFuncionario.gps_activo == False, models.VehiculoFuncionario.gps_activo == 0, models.VehiculoFuncionario.gps_activo.is_(None))).all()
+        fun_q = db.query(models.VehiculoFuncionario).filter(or_(models.VehiculoFuncionario.gps_activo == False, models.VehiculoFuncionario.gps_activo == 0, models.VehiculoFuncionario.gps_activo.is_(None)))
+        if empresa_id is not None:
+            links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+            usuario_ids = [l.usuario_id for l in links]
+            users = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+            usernames = [u.username for u in users if getattr(u, 'username', None)]
+            if usernames:
+                fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(usernames))
+            else:
+                fun_q = fun_q.filter(models.VehiculoFuncionario.username.in_(["__none__"]))
+        fun = fun_q.all()
         for v in fun:
             propietario_f = db.query(models.Funcionario).filter(models.Funcionario.username == v.username).first()
             resultado.append({
@@ -639,3 +958,110 @@ async def get_vehiculos_inactivos(db: Session = Depends(get_db)):
                 "propietario_tipo": 'funcionario'
             })
     return resultado
+
+# ========================= In-app Alerts: Línea de Reacción =========================
+# Almacenamiento en memoria para desarrollo
+ALERTS_MEM: list[dict] = []  # { 'ts_ms': int, 'origin': str|None, 'message': str|None }
+
+class AlertIn(BaseModel):
+    origin: str | None = None
+    message: str | None = None
+
+@authRouter.post('/alertas/linea-reaccion')
+async def crear_alerta_linea_reaccion(body: AlertIn | None = None):
+    now_ms = int(datetime.utcnow().timestamp() * 1000)
+    item = {
+        'ts_ms': now_ms,
+        'origin': (body.origin if body else None),
+        'message': (body.message if body else 'Línea de Reacción activada')
+    }
+    ALERTS_MEM.append(item)
+    # Mantener últimos 100
+    if len(ALERTS_MEM) > 100:
+        del ALERTS_MEM[:-100]
+    return {'created': True, 'ts_ms': now_ms}
+
+@authRouter.get('/alertas/ultimas')
+async def obtener_alertas(since_ms: int | None = None, window_minutes: int = 10):
+    """Devuelve alertas recientes. Si since_ms se provee, devuelve las posteriores.
+    Si no, devuelve las alertas de los últimos 'window_minutes' minutos."""
+    now_ms = int(datetime.utcnow().timestamp() * 1000)
+    if since_ms is not None:
+        filtered = [a for a in ALERTS_MEM if a.get('ts_ms', 0) > since_ms]
+    else:
+        cutoff = now_ms - window_minutes * 60 * 1000
+        filtered = [a for a in ALERTS_MEM if a.get('ts_ms', 0) >= cutoff]
+    return {'now_ms': now_ms, 'items': filtered}
+
+# ========================= Empresa: listado de clientes con vehículos =========================
+@authRouter.get('/empresa/clientes')
+async def empresa_clientes(empresa_id: int | None = None, incluir_funcionarios: bool = False, db: Session = Depends(get_db)):
+    """Lista los usuarios asociados a la empresa y sus vehículos.
+    - Devuelve una fila por vehículo (incluye los asignados por la empresa porque se filtra por username).
+    - Si un usuario no tiene vehículo, no se incluye.
+    """
+    if not empresa_id:
+        return []
+    # Usuarios vinculados a la empresa
+    links = db.query(models.EmpresaUsuario).filter(models.EmpresaUsuario.empresa_id == empresa_id).all()
+    if not links:
+        return []
+    usuario_ids = [l.usuario_id for l in links]
+    if not usuario_ids:
+        return []
+    usuarios = db.query(models.Registro).filter(models.Registro.identificador.in_(usuario_ids)).all()
+    if not usuarios:
+        return []
+    # Filtrar por tipo de usuario
+    result = []
+    for u in usuarios:
+        tipo = (getattr(u, 'tipo_usuario', '') or '').lower()
+        # incluir clientes y pime siempre; funcionarios sólo si se solicita
+        if not incluir_funcionarios and tipo == 'funcionario':
+            continue
+        if tipo not in ('cliente', 'funcionario', 'pime'):
+            continue
+        # 1) Vehículos en tabla general (creados manualmente por el usuario)
+        vehiculos_general = (
+            db.query(models.Vehiculo)
+            .filter(func.lower(models.Vehiculo.username) == func.lower(u.username))
+            .all()
+        )
+        for v in vehiculos_general:
+            result.append({
+                'nombre': f"{getattr(u, 'nombres', '') or ''} {getattr(u, 'apellidos', '') or ''}".strip(),
+                'identificacion': getattr(u, 'numero_identificacion', None),
+                'celular': getattr(u, 'telefono', None),
+                'placa': getattr(v, 'placa', None),
+                'modelo': getattr(v, 'modelo', None),
+                'color': getattr(v, 'color', None),
+                'fecha_soat': getattr(v, 'fecha_soat', None),
+                'fecha_tecno': getattr(v, 'fecha_tecno', None),
+                # Propio para clientes y pime; asignado para funcionarios
+                'origen': 'propio' if tipo in ('cliente', 'pime') else 'asignado',
+                'tipo_usuario': tipo,
+            })
+
+        # 2) Vehículos en tabla de funcionarios (asignados por empresa)
+        try:
+            veh_fun = (
+                db.query(models.VehiculoFuncionario)
+                .filter(func.lower(models.VehiculoFuncionario.username) == func.lower(u.username))
+                .all()
+            )
+        except Exception:
+            veh_fun = []
+        for v in veh_fun:
+            result.append({
+                'nombre': f"{getattr(u, 'nombres', '') or ''} {getattr(u, 'apellidos', '') or ''}".strip(),
+                'identificacion': getattr(u, 'numero_identificacion', None),
+                'celular': getattr(u, 'telefono', None),
+                'placa': getattr(v, 'placa', None),
+                'modelo': getattr(v, 'modelo', None),
+                'color': getattr(v, 'color', None),
+                'fecha_soat': getattr(v, 'fecha_soat', None) if hasattr(v,'fecha_soat') else None,
+                'fecha_tecno': getattr(v, 'fecha_tecno', None) if hasattr(v,'fecha_tecno') else None,
+                'origen': 'asignado',
+                'tipo_usuario': 'funcionario',
+            })
+    return result

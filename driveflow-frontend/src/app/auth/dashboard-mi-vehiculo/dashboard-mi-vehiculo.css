@@ -327,3 +327,78 @@ input[type="text"], input[type="email"], input[type="date"] {
 .side-column .attachments.gallery {
   margin-top: 200px; /* bajar más la galería */
 }
+
+/* Mover a la derecha el botón 'Subir múltiples' en la galería */
+.side-column .attachments.gallery .attach-actions {
+  justify-content: flex-end !important;
+  width: 100%;
+  padding-right: 40px !important; /* empuja más hacia la derecha */
+  text-align: right; /* respaldo */
+  display: flex; /* asegurar flex para order */
+}
+
+/* Empuje adicional del propio botón hacia la derecha */
+.side-column .attachments.gallery .attach-actions .attach-btn {
+  margin-left: auto;
+  order: 2; /* botón al final */
+}
+
+/* Colocar indicadores de subida/errores a la izquierda */
+.side-column .attachments.gallery .attach-actions .uploading,
+.side-column .attachments.gallery .attach-actions .error {
+  order: 1;
+}
+
+/* ====== Modal de previsualización ====== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  width: min(92vw, 980px);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+.modal-header .title { font-weight: 700; color: #222; }
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.close-btn:hover { color: #d32f2f; }
+
+.modal-body {
+  background: #000;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-body img {
+  width: 100%;
+  height: auto;
+  max-height: 82vh;
+  object-fit: contain;
+  background: #000;
+}

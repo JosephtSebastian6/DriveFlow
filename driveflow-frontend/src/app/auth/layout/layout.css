@@ -127,6 +127,56 @@
   justify-content: center;
   align-items: center;
 }
+
+/* ===== Banner de alertas in-app ===== */
+.alerts-banner {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto 16px auto;
+  border: 1px solid #ffcdd2;
+  background: #ffebee;
+  color: #b71c1c;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(183, 28, 28, 0.15);
+  padding: 10px 12px;
+}
+.alerts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.alerts-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #b71c1c;
+}
+.alerts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.alerts-list li { margin: 4px 0; }
+.alerts-time { font-weight: 600; margin-right: 6px; }
+.alerts-origin { color: #7f0000; }
+
+/* Toast en esquina inferior derecha */
+.alerts-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: min(360px, 90vw);
+  border: 1px solid #ffcdd2;
+  background: #ffebee;
+  color: #b71c1c;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  padding: 10px 12px;
+  z-index: 3000;
+}
 /* FORZAR VISIBILIDAD DEL SIDEBAR - REGLA ESPECÍFICA */
 .layout-container .sidebar ul,
 .layout-container .sidebar li,

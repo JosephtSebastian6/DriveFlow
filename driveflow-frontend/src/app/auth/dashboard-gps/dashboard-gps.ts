@@ -13,8 +13,7 @@ import { DashboardEmpresaAgentesService, Agente } from '../dashboard-empresa-age
 })
 export class DashboardGpsComponent implements OnInit, AfterViewInit {
   showApagarVehiculo = false;
-  agentes: Agente[] = [];
-  filteredAgentes: Agente[] = [];
+  // Campo de búsqueda por placa
   searchTerm = '';
 
   // --- Estado para rutas ---
@@ -30,6 +29,8 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
   private demoLocations: Record<string, [number, number]> = {};
   // Marcadores por placa para poder actualizar color/posición
   private markersByPlaca: Record<string, any> = {};
+  // Último vehículo ubicado por placa
+  private lastLocated: { placa: string; lat: number; lon: number } | null = null;
 
   // Resumen de ruta
   routeDistanceKm: string | null = null;
@@ -50,14 +51,52 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
     const tipo = localStorage.getItem('tipo_usuario');
     this.showApagarVehiculo = tipo === 'funcionario' || tipo === 'empresa' || tipo === 'administrador' || tipo === 'pime' || tipo === 'cliente';
     
-    // Cargar los agentes (funcionarios)
-    this.loadAgentes();
+    // Ya no cargamos lista de funcionarios; el panel derecho es buscador por placa
 
     // Cargar ubicaciones demo de localStorage
     try {
       const raw = localStorage.getItem('demoLocations');
       if (raw) this.demoLocations = JSON.parse(raw);
     } catch {}
+  }
+
+  async traceToVehicle(): Promise<void> {
+    if (!this.lastLocated) {
+      alert('Primero busca y ubica una placa.');
+      return;
+    }
+    // Asegurar ubicación actual
+    if (!this.currentPos) {
+      await new Promise<void>((resolve) => {
+        this.useMyLocation();
+        setTimeout(() => resolve(), 1200);
+      });
+      if (!this.currentPos) return;
+    }
+    // Limpiar ruta previa
+    this.clearRoute();
+    const start = this.L.latLng(this.currentPos[0], this.currentPos[1]);
+    const end = this.L.latLng(this.lastLocated.lat, this.lastLocated.lon);
+    this.routingControl = this.L.Routing.control({
+      waypoints: [start, end],
+      routeWhileDragging: true,
+      show: false,
+      addWaypoints: false,
+      collapsible: true,
+      lineOptions: { styles: [{ color: '#1976d2', weight: 6, opacity: 0.9 }] },
+      router: this.L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' })
+    }).addTo(this.map);
+    this.routingControl.on('routesfound', (e: any) => {
+      if (!e || !e.routes || e.routes.length === 0) return;
+      const r = e.routes[0];
+      const distKm = r.summary.totalDistance / 1000;
+      const durSec = r.summary.totalTime;
+      this.routeDistanceKm = distKm.toFixed(1);
+      this.routeDurationStr = this.formatDuration(durSec);
+      const eta = new Date(Date.now() + durSec * 1000);
+      this.routeEtaStr = `${eta.getHours().toString().padStart(2,'0')}:${eta.getMinutes().toString().padStart(2,'0')}`;
+    });
+    this.map.fitBounds(this.L.latLngBounds([start, end]), { padding: [40, 40] });
   }
 
   // --- DEMO: ubicaciones por placa ---
@@ -317,24 +356,26 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  loadAgentes(): void {
-    this.agentesService.getAgentes().subscribe({
-      next: (agentes) => {
-        this.agentes = agentes;
-        this.filteredAgentes = agentes;
-      },
-      error: (error) => {
-        console.error('Error al cargar agentes:', error);
-      }
-    });
-  }
-
-  onSearch(event: any): void {
-    this.searchTerm = event.target.value.toLowerCase();
-    this.filteredAgentes = this.agentes.filter(agente => 
-      agente.placa.toLowerCase().includes(this.searchTerm) ||
-      agente.nombre.toLowerCase().includes(this.searchTerm)
-    );
+  // Ubicar por placa usando posiciones demo o geocodificación si no existe
+  async locateByPlaca(): Promise<void> {
+    const placa = (this.searchTerm || '').trim().toUpperCase();
+    if (!placa) return;
+    // Si tenemos una demoLocation guardada, úsala
+    const demo = this.demoLocations[placa];
+    if (demo) {
+      this.upsertMarkerForPlaca(placa, demo[0], demo[1]);
+      if (this.map) this.map.setView([demo[0], demo[1]], 15);
+      this.lastLocated = { placa, lat: demo[0], lon: demo[1] };
+      return;
+    }
+    // Si no hay demo, intentamos geocodificar la placa como texto (fallback naïve)
+    const guess = await this.geocode(placa);
+    if (guess) {
+      this.setDemoLocationForPlaca(placa, guess.lat, guess.lon);
+      this.lastLocated = { placa, lat: guess.lat, lon: guess.lon };
+      return;
+    }
+    alert('No hay ubicación registrada para esa placa. Usa "Ubicar demo" para asignarla.');
   }
 
   getStatusColor(agente: Agente): string {
@@ -389,12 +430,17 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
     const placa = prompt('Ingrese la placa del vehículo a apagar');
     if (!placa) return;
     try {
+      const empresaId = await this.resolveEmpresaId();
       const res = await fetch('http://localhost:8000/auth/vehiculos/gps/desactivar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ placa })
+        body: JSON.stringify({ placa, empresa_id: empresaId })
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        let detail = await res.text();
+        try { const j = JSON.parse(detail); detail = j.detail || detail; } catch {}
+        throw new Error(detail || 'Error al desactivar');
+      }
       // Estado visual como 'vehículo apagado'
       this.actionMessage = `Vehículo ${placa} apagado`;
       this.powerStatus = 'apagado';
@@ -407,7 +453,7 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.actionMessage = null, 2500);
     } catch (e) {
       console.error(e);
-      alert('No fue posible apagar el vehículo.');
+      alert('No fue posible apagar el vehículo. ' + (e as any)?.message || '');
     }
   }
 
@@ -415,12 +461,17 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
     const placa = prompt('Ingrese la placa del vehículo a encender');
     if (!placa) return;
     try {
+      const empresaId = await this.resolveEmpresaId();
       const res = await fetch('http://localhost:8000/auth/vehiculos/gps/activar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ placa })
+        body: JSON.stringify({ placa, empresa_id: empresaId })
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        let detail = await res.text();
+        try { const j = JSON.parse(detail); detail = j.detail || detail; } catch {}
+        throw new Error(detail || 'Error al activar');
+      }
       // Estado visual como 'vehículo encendido'
       this.actionMessage = `Vehículo ${placa} encendido`;
       this.powerStatus = 'encendido';
@@ -433,7 +484,26 @@ export class DashboardGpsComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.actionMessage = null, 2500);
     } catch (e) {
       console.error(e);
-      alert('No fue posible encender el vehículo.');
+      alert('No fue posible encender el vehículo. ' + (e as any)?.message || '');
+    }
+  }
+
+  private async resolveEmpresaId(): Promise<number | null> {
+    const cached = localStorage.getItem('empresa_id');
+    if (cached) return Number(cached);
+    const username = localStorage.getItem('username');
+    if (!username) return null;
+    try {
+      const res = await fetch(`http://localhost:8000/auth/empresa/id-por-username?username=${encodeURIComponent(username)}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data?.empresa_id) {
+        localStorage.setItem('empresa_id', String(data.empresa_id));
+        return Number(data.empresa_id);
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 }

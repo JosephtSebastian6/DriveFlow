@@ -18,6 +18,9 @@ import { DashboardEmpresaAgentes } from './auth/dashboard-empresa-agentes/dashbo
 import { DashboardEmpresaDispositivos } from './auth/dashboard-empresa-dispositivos/dashboard-empresa-dispositivos';
 import { DashboardAdminUsuariosComponent } from './auth/dashboard-admin-usuarios/dashboard-admin-usuarios';
 import { DashboardEmpresaAsignarComponent } from './auth/dashboard-empresa-asignar/dashboard-empresa-asignar';
+import { DashboardPagosPlanesComponent } from './auth/dashboard-pagos-planes/dashboard-pagos-planes';
+import { DashboardServiciosComponent } from './auth/dashboard-servicios/dashboard-servicios';
+import { authGuardChild } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
@@ -27,9 +30,11 @@ export const routes: Routes = [
   { path: 'email-verified-success', component: EmailVerifiedSuccessComponent },
   // Home público fuera del Layout para evitar mostrar la sidebar
   { path: 'home', component: HomeComponent },
+  { path: 'servicios', component: DashboardServiciosComponent },
   {
     path: '',
     component: LayoutComponent,
+    canActivateChild: [authGuardChild],
     children: [
       // Redirige a destino según rol
       { path: 'dashboard', component: DashboardRedirectComponent },
@@ -42,6 +47,7 @@ export const routes: Routes = [
       { path: 'dashboard-empresa-agentes', component: DashboardEmpresaAgentes },
       { path: 'dashboard-empresa-dispositivos', component: DashboardEmpresaDispositivos },
       { path: 'dashboard-empresa-asignar', component: DashboardEmpresaAsignarComponent },
+      { path: 'dashboard-empresa-pagos', component: DashboardPagosPlanesComponent },
       { path: 'dashboard-mi-vehiculo', component: DashboardMiVehiculoComponent },
     ]
   }

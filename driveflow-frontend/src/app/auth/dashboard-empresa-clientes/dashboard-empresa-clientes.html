@@ -1,6 +1,22 @@
 <div class="dashboard-empresa-clientes-container">
   <h2>Clientes de la Empresa</h2>
   <p>Aquí podrás ver y gestionar los clientes asociados a tu empresa.</p>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <label for="filtroTipo"><strong>Mostrar:</strong></label>
+    <select id="filtroTipo" [(ngModel)]="filtroTipo">
+      <option value="clientes">Clientes</option>
+      <option value="funcionarios">Funcionarios</option>
+      <option value="pime">PIME</option>
+      <option value="todos">Todos</option>
+    </select>
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar por nombre, identificación o placa"
+      style="flex:1; max-width: 360px; padding:8px 10px; border:1px solid #ddd; border-radius:8px;"
+    />
+    <span style="color:#666;">Total: {{ clientesFiltrados.length }}</span>
+  </div>
   <div *ngIf="loading" class="clientes-loading">Cargando clientes...</div>
   <div *ngIf="error" class="clientes-error">{{ error }}</div>
   <div class="clientes-table-wrapper" *ngIf="!loading && !error">
@@ -16,10 +32,11 @@
           <th>Color</th>
           <th>Fecha SOAT</th>
           <th>Fecha Tecnomecánica</th>
+          <th>Origen</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let cliente of clientes">
+        <tr *ngFor="let cliente of clientesFiltrados">
           <td class="status-cell">
             <span class="status-dot" [ngClass]="getStatusColor(cliente)" [title]="getStatusTooltip(cliente)"></span>
           </td>
@@ -31,9 +48,14 @@
           <td>{{ cliente.color }}</td>
           <td>{{ cliente.fecha_soat }}</td>
           <td>{{ cliente.fecha_tecno }}</td>
+          <td>
+            <span class="tag-origen asignado" *ngIf="(cliente.origen || '').toLowerCase() === 'asignado'">Asignado</span>
+            <span class="tag-origen propio" *ngIf="(cliente.origen || '').toLowerCase() === 'propio'">Propio</span>
+            <span class="tag-origen" *ngIf="!(cliente.origen)">—</span>
+          </td>
         </tr>
         <tr *ngIf="clientes.length === 0">
-          <td colspan="9" style="text-align:center; color:#888;">No hay clientes registrados.</td>
+          <td colspan="10" style="text-align:center; color:#888;">No hay clientes registrados.</td>
         </tr>
       </tbody>
     </table>
