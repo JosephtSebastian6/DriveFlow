@@ -21,11 +21,15 @@ import { DashboardEmpresaAsignarComponent } from './auth/dashboard-empresa-asign
 import { DashboardPagosPlanesComponent } from './auth/dashboard-pagos-planes/dashboard-pagos-planes';
 import { DashboardServiciosComponent } from './auth/dashboard-servicios/dashboard-servicios';
 import { authGuardChild } from './auth/auth.guard';
+import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password';
+import { ResetPasswordComponent } from './auth/reset-password/reset-password';
 
 export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'auth/verify-email', component: VerifyEmailComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'email-verified-success', component: EmailVerifiedSuccessComponent },
   // Home público fuera del Layout para evitar mostrar la sidebar

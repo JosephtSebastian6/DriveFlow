@@ -15,6 +15,7 @@ import models
 import schemas
 from Clever_MySQL_conn import get_db
 from sqlalchemy import func, or_, and_
+import os
 
 
 # Local imports
@@ -30,6 +31,46 @@ EXPIRATION_MINUTES = 60
 
 
 authRouter = APIRouter()
+
+# =========================== Password Reset ===========================
+class ResetRequestIn(BaseModel):
+    email: EmailStr
+
+class ResetConfirmIn(BaseModel):
+    token: str
+    new_password: str
+
+@authRouter.post('/password-reset/request')
+async def password_reset_request(body: ResetRequestIn, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
+    """Genera un token de reseteo e intenta enviar un correo con el enlace.
+    Siempre responde 200 para no filtrar si el correo existe o no."""
+    # Asegurar tabla (por si falta migración en entornos locales)
+    try:
+        from Clever_MySQL_conn import engine, Base
+        Base.metadata.create_all(bind=engine, tables=[models.ResetToken.__table__])
+    except Exception as e:
+        print(f"WARN reset: no se pudo asegurar tabla reset_token: {e}")
+
+    user = db.query(models.Registro).filter(func.lower(models.Registro.email) == func.lower(body.email)).first()
+    if user:
+        try:
+            token = crud.create_reset_token(db, user)
+            frontend_base = os.getenv('DF_FRONTEND_BASE', 'http://localhost:4200')
+            reset_link = f"{frontend_base}/reset-password?token={token}"
+            await crud.send_password_reset_email(user.email, reset_link, background_tasks)
+        except Exception as e:
+            # No romper el flujo; registrar y seguir
+            print(f"WARN reset: fallo al enviar correo: {e}")
+    return {"ok": True}
+
+@authRouter.post('/password-reset/confirm')
+async def password_reset_confirm(body: ResetConfirmIn, db: Session = Depends(get_db)):
+    if not body.new_password or len(body.new_password) < 8:
+        raise HTTPException(status_code=400, detail='La contraseña es muy corta')
+    ok = crud.confirm_password_reset(db, body.token, body.new_password)
+    if not ok:
+        raise HTTPException(status_code=400, detail='Token inválido, usado o expirado')
+    return {"ok": True}
 
 
 # ENDPOINTS PARA OBTENER PERFIL Y VEHICULO POR USERNAME

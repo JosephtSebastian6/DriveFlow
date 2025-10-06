@@ -399,3 +399,58 @@ def create_user_and_assign_vehicle(db: Session, payload: dict) -> tuple[models.R
     user = _create_user_core(db, username, email, nombres, apellidos, telefono, tipo_usuario, temp_password)
     vehiculo_creado = _create_vehicle_for_user(db, tipo_usuario, username, payload['vehiculo'])
     return user, {"id": getattr(vehiculo_creado, 'id', None), "placa": getattr(vehiculo_creado, 'placa', None)}
+
+# ====================== PASSWORD RESET ======================
+from secrets import token_urlsafe
+
+def create_reset_token(db: Session, user: models.Registro, minutes: int = 30) -> str:
+    token = token_urlsafe(32)
+    exp = datetime.utcnow() + timedelta(minutes=minutes)
+    rt = models.ResetToken(user_id=user.identificador, token=token, expires_at=exp, used=False)
+    db.add(rt)
+    db.commit()
+    return token
+
+async def send_password_reset_email(recipient_email: EmailStr, reset_link: str, background_tasks: BackgroundTasks):
+    html = f"""
+    <!DOCTYPE html>
+    <html lang='es'>
+    <body style='font-family:Arial,Helvetica,sans-serif'>
+      <h2>Restablecer contraseña</h2>
+      <p>Para restablecer tu contraseña, usa este enlace (válido 30 minutos):</p>
+      <p><a href='{reset_link}'>{reset_link}</a></p>
+      <p>Si no solicitaste este cambio, ignora este mensaje.</p>
+    </body>
+    </html>
+    """
+    msg = MIMEMultipart("alternative")
+    msg["From"] = f"{conf.MAIL_FROM_NAME} <{conf.MAIL_FROM}>"
+    msg["To"] = recipient_email
+    msg["Subject"] = "Restablecer contraseña"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    async def _task():
+        try:
+            client = SMTP(hostname=conf.MAIL_SERVER, port=conf.MAIL_PORT, start_tls=conf.MAIL_STARTTLS, tls_context=None)
+            await client.connect()
+            await client.login(conf.MAIL_USERNAME, conf.MAIL_PASSWORD.get_secret_value())
+            await client.send_message(msg)
+            await client.quit()
+        except Exception as e:
+            print(f"ERROR reset email: {e}")
+
+    background_tasks.add_task(_task)
+
+def confirm_password_reset(db: Session, token: str, new_password: str) -> bool:
+    row = db.query(models.ResetToken).filter(models.ResetToken.token == token).first()
+    if not row or row.used:
+        return False
+    if datetime.utcnow() > row.expires_at:
+        return False
+    user = db.query(models.Registro).filter(models.Registro.identificador == row.user_id).first()
+    if not user:
+        return False
+    user.hashed_password = bcrypt_context.hash(new_password)
+    row.used = True
+    db.commit()
+    return True

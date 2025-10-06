@@ -26,6 +26,15 @@ class Vehiculo(Base):
     gps_activo = Column(Boolean, default=False)
 
 
+# Tokens de restablecimiento de contraseña
+class ResetToken(Base):
+    __tablename__ = "reset_token"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("registro.identificador"), nullable=False, index=True)
+    token = Column(String(255), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False, nullable=False)
+
 # Tabla para gestionar códigos de invitación por empresa
 class EmpresaCodigo(Base):
     __tablename__ = "empresa_codigo"
