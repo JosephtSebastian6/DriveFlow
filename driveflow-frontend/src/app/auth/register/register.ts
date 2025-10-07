@@ -84,8 +84,7 @@ export class RegisterComponent implements OnInit {
       password: this.password,
       nombres: this.nombres,
       apellidos: this.apellidos,
-      tipo_usuario: this.tipo_usuario,
-      // Enviamos el código de empresa solo si el usuario lo proporcionó
+      // No enviamos tipo_usuario desde el frontend; backend lo fija a 'cliente'
       ...(this.empresa_code ? { empresa_code: this.empresa_code } : {})
     };
 

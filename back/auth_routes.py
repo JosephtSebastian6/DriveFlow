@@ -263,6 +263,21 @@ async def register(
     if existing_user:
         raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
 
+    # Forzar rol 'cliente' en servidor ignorando lo que llegue del cliente
+    try:
+        object.__setattr__(user, 'tipo_usuario', 'cliente')
+    except Exception:
+        # Si Pydantic impide asignación directa, reconstruimos el modelo
+        user = schemas.RegistroCreate(
+            username=user.username,
+            password=user.password,
+            nombres=user.nombres,
+            apellidos=user.apellidos,
+            email=user.email,
+            tipo_usuario='cliente',
+            empresa_code=getattr(user, 'empresa_code', None)
+        )
+
     # Llama a la función CRUD para registrar al usuario, pasando las dependencias necesarias
     new_user = await crud.registro_user(db, user, background_tasks, request)
     # Asociación por empresa_code si viene en el payload

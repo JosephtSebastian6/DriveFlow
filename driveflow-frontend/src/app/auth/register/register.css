@@ -6,14 +6,21 @@
   width: 100%;
 }
 
-.mat-form-field {
-  background: #f5f7fa;
-  border-radius: 8px;
-}
+.mat-form-field { border-radius: 8px; }
 
-.mat-form-field-appearance-fill .mat-form-field-flex {
-  background-color: #f5f7fa;
+/* Alinear el campo de tipo de usuario con el resto de inputs (tema oscuro) */
+.readonly-field mat-form-field { width: 100%; }
+.readonly-field .mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: rgba(255, 255, 255, 0.1);
 }
+.readonly-field .mat-form-field-appearance-fill .mat-input-element,
+.readonly-field input[matinput] {
+  color: #fff;
+}
+.readonly-field .mat-form-field-label { color: rgba(255,255,255,0.8) !important; }
+.readonly-field .mat-form-field-subscript-wrapper { display: none; }
+.readonly-field .mat-form-field-wrapper { padding-bottom: 0; }
+.readonly-field .mat-form-field-flex { border-radius: 4px; }
 
 .mat-select {
   color: #2d3a4a;
@@ -104,6 +111,23 @@
   color: white;
   font-size: 16px;
   outline: none; /* Elimina el contorno de foco por defecto */
+}
+
+/* Campo simulado de solo lectura para 'Tipo de usuario' */
+.fake-input {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  min-height: 48px; /* asegura misma altura que inputs del tema */
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
 }
 
 .form-field input:focus {

@@ -46,15 +46,14 @@
         <div class="form-field">
           <label for="password">Contraseña*</label>
           <input id="password" type="password" [(ngModel)]="password" name="password" required>
-        <!-- Campo de Tipo de Usuario con Angular Material -->
-        <mat-form-field appearance="fill" class="form-field">
-          <mat-label>Tipo de usuario*</mat-label>
-          <mat-select [(ngModel)]="tipo_usuario" name="tipo_usuario" required>
-            <mat-option value="cliente">Cliente</mat-option>
-            <mat-option value="funcionario">Funcionario</mat-option>
-            <mat-option value="empresa">Empresa</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <!-- Rol fijo a 'cliente' -->
+          <input type="hidden" name="tipo_usuario" [(ngModel)]="tipo_usuario" value="cliente">
+        </div>
+
+        <!-- Visualización del tipo de usuario (solo lectura) -->
+        <div class="form-field">
+          <label for="tipo_usuario_display">Tipo de usuario</label>
+          <input id="tipo_usuario_display" type="text" value="Cliente" disabled aria-disabled="true"/>
         </div>
 
         <!-- Botón de Registro -->

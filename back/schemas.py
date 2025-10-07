@@ -37,7 +37,7 @@ class RegistroCreate(BaseModel):
     apellidos:str
 
     email: EmailStr 
-    tipo_usuario: str  # cliente, funcionario, empresa
+    tipo_usuario: str = 'cliente'  # Solo 'cliente' para registro público; el backend lo fuerza
     empresa_code: str | None = None  # Código de invitación de empresa (opcional)
 
 class LoginUsuario(BaseModel):
